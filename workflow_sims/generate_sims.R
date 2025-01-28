@@ -139,11 +139,17 @@ sumstats <- data.frame(segsites, median_AF,  mean_ld, median_ld)
 #write effect sizes
 write.table(sumstats, output_file_summary, quote = F, col.names = T, row.names = F)
 
+#########
+#sfs plot
+
+sfs$af = sfs$`colSums(df)`/nrow(df)
+
+pl_sfs <- ggplot(sfs, aes(x=af)) + geom_histogram(color="black", fill="grey") + theme_bw()
 
 
 #########
 #LD plots
-pl1 <- ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + geom_tile() +
+pl_ld_heatmap <- ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + geom_tile() +
         scale_fill_gradientn(colors = hcl.colors(20, "RdBu"), limits=c(-1, 1))
 
 
@@ -152,15 +158,65 @@ melted_cormat$Var2_clean <- as.numeric(sub("1_", "", melted_cormat$Var2))
 melted_cormat$dist <- abs(melted_cormat$Var1_clean  - melted_cormat$Var2_clean)
 
 
-pl2 <- ggplot(melted_cormat, aes(dist, abs(value))) + geom_point(alpha = 0.5) + geom_smooth(method = "loess", se=F)
+pl_ld_decay <- ggplot(melted_cormat, aes(dist, abs(value))) + geom_point(alpha = 0.5) + geom_smooth(method = "loess", se=F)
 
 
-ldplot  <- grid.arrange(pl1, pl2, ncol = 2, nrow = 1)
+#########
+#grm
 
+compute_grm <- function(genotype_matrix) {
+  # Validate input
+  if (!is.matrix(genotype_matrix) || !all(genotype_matrix %in% c(0, 1))) {
+    stop("genotype_matrix must be a numeric matrix with values 0 or 1.")
+  }
+
+  # Dimensions of the genotype matrix
+  n <- nrow(genotype_matrix)  # Number of individuals
+  L <- ncol(genotype_matrix)  # Number of markers
+
+  # Step 1: Compute allele frequencies (p) for each marker
+  p <- colMeans(genotype_matrix)  # Allele frequency
+
+  # Step 2: Center the genotype matrix by subtracting p for each marker
+  Z <- sweep(genotype_matrix, 2, p)  # Centered genotype matrix
+
+  # Step 3: Compute the genomic relationship matrix (GRM)
+  GRM <- Z %*% t(Z) / L  # Normalize by the number of markers
+
+  # Step 4: Standardize the GRM by dividing by the mean of the diagonal elements
+  mean_diag <- mean(diag(GRM))
+  GRM <- GRM / mean_diag
+
+  # Ensure symmetry
+  if (!all.equal(GRM, t(GRM))) {
+    stop("GRM is not symmetric. Check the genotype matrix for errors.")
+  }
+
+  return(GRM)
+}
+
+
+subsample_df <- as.matrix(df[1:100,])
+grm <- compute_grm(as.matrix(subsample_df))
+
+#perform hierarchical clustering to order samples in plot
+row_dend <- hclust(dist(grm))  # Cluster rows
+col_dend <- hclust(dist(t(grm)))  # Cluster columns
+
+melted_cormat_grm <- melt(grm)
+melted_cormat_grm$Var1 <- factor(melted_cormat_grm$Var1, levels = rownames(grm)[row_dend$order])
+melted_cormat_grm$Var2 <- factor(melted_cormat_grm$Var2, levels = colnames(grm)[col_dend$order])
+
+pl_grm <- ggplot(data = melted_cormat_grm, aes(x=Var1, y=Var2, fill=value)) + geom_tile() +
+          scale_fill_gradientn(colors = hcl.colors(10, "OrRd"), trans = 'reverse')
+
+
+#########
+
+summary_plot  <- grid.arrange(pl_grm, pl_sfs, pl_ld_heatmap, pl_ld_decay,  ncol = 4, nrow = 1)
 
 #output figure
-ggsave(output_file_ld_plot, ldplot,  width = 15, height = 5)
-#TODO add SFS and GRM viz to plot output
+ggsave(output_file_ld_plot, summary_plot,  width = 15, height = 5)
 #############################################################
 #############################################################
 #output files for GPatlas
