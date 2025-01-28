@@ -3,7 +3,8 @@ import pickle as pk
 
 out_dict={}
 
-phen_file = open('alphasimr/sim_2trait_dec18_p.txt' , 'r')
+file_prefix = 'WF_Ne100k_samples_10k_H2_05_qtl_10k_corA_02_25traits'
+phen_file = open('alphasimr/' + file_prefix + '_p.txt' , 'r')
 
 phens = phen_file.read().split('\n')
 
@@ -21,7 +22,7 @@ out_dict['phenotypes'] = [[float(y)  if y!= 'NA' else 0 for y in x[1:]] for x in
 
 
 
-genotype_file = open('alphasimr/sim_2trait_dec18_g.txt' , 'r')
+genotype_file = open('alphasimr/' + file_prefix + '_g.txt' , 'r')
 
 gens = genotype_file.read().split('\n')
 
@@ -34,7 +35,7 @@ new_coding_dict = {'0':[1,0],'1':[0,1]}
 out_dict['genotypes'] = [[new_coding_dict[x] for x in [gens[y][n] for y in range(len(gens))[1:-1]]] for n in range(len(gens[0]))[1:]]
 
 #dump full dataset
-pk.dump(out_dict, open('alphasimr/sim_2trait_dec18.pk','wb'))
+pk.dump(out_dict, open('alphasimr/' + file_prefix + '.pk','wb'))
 
 
 #################################################################################
@@ -43,7 +44,7 @@ pk.dump(out_dict, open('alphasimr/sim_2trait_dec18.pk','wb'))
 
 
 
-in_data = pk.load(open('alphasimr/sim_2trait_dec18.pk','rb'))
+in_data = pk.load(open('alphasimr/' + file_prefix + '.pk','rb'))
 
 out_dict_test = {}
 
@@ -62,7 +63,7 @@ for x in categories_to_copy:
 for x in categories_to_stratefy:
  out_dict_train[x] = in_data[x][:train_length]
 
-pk.dump(out_dict_train, open('alphasimr/sim_2trait_dec18_train.pk','wb'))
+pk.dump(out_dict_train, open('alphasimr/' + file_prefix + '_train.pk','wb'))
 
 del(out_dict_train)
 
@@ -73,6 +74,6 @@ for x in categories_to_copy:
 for x in categories_to_stratefy:
  out_dict_test[x] = in_data[x][train_length:]
 
-pk.dump(out_dict_test, open('alphasimr/sim_2trait_dec18_test.pk','wb'))
+pk.dump(out_dict_test, open('alphasimr/' + file_prefix + '_test.pk','wb'))
 
 del(out_dict_test)
