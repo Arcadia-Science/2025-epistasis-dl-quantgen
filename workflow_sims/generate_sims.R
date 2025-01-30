@@ -48,7 +48,7 @@ G = 0.8*diag(5)+0.2
 
 #add 5 traits for each level of relative epistasis (Vaa/Va at 0.5 AF)
 for(relAA in c(0, 0.25, 0.5, 1, 3)){
-SP$addTraitAE(nQtlPerChr = 10,
+SP$addTraitAE(nQtlPerChr = 10000,
              mean = c(0, 0, 0, 0, 0),
              var = c(3, 3, 3, 3, 3),
              relAA = c(relAA, relAA, relAA, relAA, relAA),
