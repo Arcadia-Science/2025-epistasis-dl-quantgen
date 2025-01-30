@@ -3,3 +3,5 @@ workflow_sims/alphasimr_output/*
 *.txt
 *.pk
 */.snakemake/*
+*.png
+*.pdf
