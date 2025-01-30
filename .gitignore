@@ -5,3 +5,5 @@ workflow_sims/alphasimr_output/*
 */.snakemake/*
 *.png
 *.pdf
+*.svg
+*.pt
