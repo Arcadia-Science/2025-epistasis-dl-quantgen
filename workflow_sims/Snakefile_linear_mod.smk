@@ -6,8 +6,8 @@ SAMPLE_SIZE = [10000]
 
 rule all:
    input:
-        #expand("rrBLUP_output/test_{sim_scenario}_{sample_size}n_{bp_len}bp_scklrr_corr_summary.txt", sim_scenario = SIM_SCENARIO, bp_len=BP_LEN, sample_size = SAMPLE_SIZE),
-        expand("rrBLUP_output/test_{sim_scenario}_{sample_size}n_{bp_len}bp_rrBLUP_corr_summary.txt", sim_scenario = SIM_SCENARIO, bp_len=BP_LEN, sample_size = SAMPLE_SIZE)
+        expand("rrBLUP_output/test_{sim_scenario}_{sample_size}n_{bp_len}bp_scklrr_corr_summary.txt", sim_scenario = SIM_SCENARIO, bp_len=BP_LEN, sample_size = SAMPLE_SIZE),
+        #expand("rrBLUP_output/test_{sim_scenario}_{sample_size}n_{bp_len}bp_rrBLUP_corr_summary.txt", sim_scenario = SIM_SCENARIO, bp_len=BP_LEN, sample_size = SAMPLE_SIZE)
 
 
 #fit rrBLUP approximation through sci-kit learn ridge regression (cross validated)

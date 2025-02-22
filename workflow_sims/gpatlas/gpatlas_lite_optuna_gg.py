@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#TODO add genetic noise hyperparameter to GP
+
 import sys
 import time as tm
 import argparse
@@ -28,13 +28,9 @@ num_workers = 10
 
 ##########################################################################################
 ##########################################################################################
-n_phen = 25
+
 n_geno = 100000
 n_alleles = 2
-
-n_loci = n_geno * n_alleles
-
-#latent_space_g = 3279
 
 l1_lambda = 0.00000000000001
 l2_lambda = 0.00000000000001
@@ -132,28 +128,20 @@ class GenoDataset(BaseDataset):
 
 ##########################################################################################
 ##########################################################################################
-train_data_gp = GenoPhenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_train.hdf5')
-test_data_gp = GenoPhenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_test.hdf5')
 
-train_data_pheno = PhenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_train.hdf5')
-test_data_pheno = PhenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_test.hdf5')
+train_data_geno = GenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_train.hdf5')
+test_data_geno = GenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_test.hdf5')
 
 ##########################################################################################
 ##########################################################################################
 
-train_loader_pheno = torch.utils.data.DataLoader(
-    dataset=train_data_pheno, batch_size=batch_size, num_workers=num_workers, shuffle=True
+train_loader_geno = torch.utils.data.DataLoader(
+    dataset=train_data_geno, batch_size=batch_size, num_workers=num_workers, shuffle=True
 )
-test_loader_pheno = torch.utils.data.DataLoader(
-    dataset=test_data_pheno, batch_size=batch_size, num_workers=num_workers, shuffle=True
+test_loader_geno = torch.utils.data.DataLoader(
+    dataset=test_data_geno, batch_size=batch_size, num_workers=num_workers, shuffle=True
 )
 
-train_loader_gp = torch.utils.data.DataLoader(
-    dataset=train_data_gp, batch_size=batch_size, num_workers=num_workers, shuffle=True
-)
-test_loader_gp = torch.utils.data.DataLoader(
-    dataset=test_data_gp, batch_size=batch_size, num_workers=num_workers, shuffle=True
-)
 ##########################################################################################
 ##########################################################################################
 
@@ -162,62 +150,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ##########################################################################################
 ##########################################################################################
 
-# encoder
-class Q_net(nn.Module):
-    def __init__(self, phen_dim=None, N=None):
-        super().__init__()
-        #if N is None:
-        #    N = p_latent_space
-        if phen_dim is None:
-            phen_dim = n_phen
-
-        batchnorm_momentum = 0.8
-        latent_dim = N
-        self.encoder = nn.Sequential(
-            nn.Linear(in_features=phen_dim, out_features=N),
-            nn.BatchNorm1d(N, momentum=batchnorm_momentum),
-            nn.LeakyReLU(0.01, inplace=True),
-            nn.Linear(in_features=N, out_features=latent_dim),
-            nn.BatchNorm1d(latent_dim, momentum=batchnorm_momentum),
-            nn.LeakyReLU(0.01, inplace=True),
-        )
-
-    def forward(self, x):
-        x = self.encoder(x)
-        return x
-
-
-# decoder
-class P_net(nn.Module):
-    def __init__(self, phen_dim=None, N=None):
-        #if N is None:
-        #    N = p_latent_space
-        if phen_dim is None:
-            phen_dim = n_phen
-
-        out_phen_dim = n_phen
-        #vabs.n_locs * vabs.n_alleles
-        latent_dim = N
-
-        batchnorm_momentum = 0.8
-
-        super().__init__()
-        self.decoder = nn.Sequential(
-            nn.Linear(in_features=latent_dim, out_features=N),
-            nn.BatchNorm1d(N, momentum=batchnorm_momentum),
-            nn.LeakyReLU(0.01),
-            nn.Linear(in_features=N, out_features=out_phen_dim),
-        )
-
-    def forward(self, x):
-        x = self.decoder(x)
-        return x
-##########################################################################################
-##########################################################################################
-
-#load optimized gg encoder
-
-#gencoder
+# gencoder
 class GQ_net(nn.Module):
     def __init__(self, n_loci=None, N=None):
         super().__init__()
@@ -242,216 +175,225 @@ class GQ_net(nn.Module):
         return x
 
 
-checkpoint = torch.load('gpatlas/optuna/best_encoder_gg_20250214_224526.pt')
-
-# Get the hyperparameters used for the best model
-best_params = checkpoint['hyperparameters']
-latent_space_g = best_params['latent_space_g']
-# Initialize model with same parameters used in training
-GQ = GQ_net(n_loci=n_loci, N=best_params['latent_space_g'])  # Use saved latent space size
-
-# Load the state dict
-GQ.load_state_dict(checkpoint['model_state_dict'])
-
-GQ.to(device)
-GQ.requires_grad_(False)  # freeze weights
-GQ.eval()
-
-##########################################################################################
-##########################################################################################
-#g to p feed forward network
-
-class GQ_to_P_net(nn.Module):
-    def __init__(self, N, latent_space_g ):
+# gendecoder
+class GP_net(nn.Module):
+    def __init__(self, n_loci=None, N=None):
         super().__init__()
+        #if N is None:
+        #    N = latent_space_g
+        if n_loci is None:
+            n_loci = n_geno * n_alleles
 
-        batchnorm_momentum =0.8
-        g_latent_dim = latent_space_g
-        latent_dim = N
+        batchnorm_momentum = 0.8
+        g_latent_dim = N
         self.encoder = nn.Sequential(
             nn.Linear(in_features=g_latent_dim, out_features=N),
             nn.BatchNorm1d(N, momentum=batchnorm_momentum),
             nn.LeakyReLU(0.01),
-            nn.Linear(in_features=N, out_features=latent_dim),
-            nn.BatchNorm1d(N, momentum=batchnorm_momentum),
-            nn.LeakyReLU(0.01),
+            nn.Linear(in_features=N, out_features=n_loci),
+            nn.Sigmoid(),
         )
 
     def forward(self, x):
         x = self.encoder(x)
         return x
 
-
 ##########################################################################################
 ##########################################################################################
 
 def objective(trial: optuna.Trial,
-             train_loader_p,
-             train_loader_gp,
-             test_loader_p,
-             test_loader_gp,
+             train_loader,
+             test_loader,
              n_geno: int,
              n_alleles: int,
-             n_phen: int,
              device: torch.device) -> float:
 
     # Hyperparameters to optimize
-    latent_space_p = trial.suggest_int('latent_space_p', 15, 500)
+    latent_space_g = trial.suggest_int('latent_space_g', 100, 3500)
+    gen_noise = trial.suggest_float('gen_noise', 0.1, 0.7)
     learning_rate = trial.suggest_float('learning_rate', 1e-4, 1e-2, log=True)
-    phen_noise = trial.suggest_float('phen_noise', 0.001, 1, log=True)
-    num_epochs_pp = trial.suggest_int('num_epochs_pp', 1, 10)
-    num_epochs_gp = trial.suggest_int('num_epochs_gp', 1, 10)
+    num_epochs = trial.suggest_int('num_epochs', 1, 10)
     weights_regularization = trial.suggest_float('weights_regularization', 1e-6, 1e-1, log=True)
 
     # Constants
     EPS = 1e-15
     adam_b = (0.5, 0.999)
     n_loci = n_geno * n_alleles
-    gen_noise = 6134198767949589
 
     # Initialize models
-    Q = Q_net(phen_dim=n_phen, N = latent_space_p).to(device)
-    P = P_net(phen_dim=n_phen, N = latent_space_p).to(device)
+    GQ = GQ_net(n_loci=n_loci, N=latent_space_g).to(device)
+    GP = GP_net(n_loci=n_loci, N=latent_space_g).to(device)
 
     # Optimizers
-    optim_Q_enc = torch.optim.Adam(Q.parameters(), lr=learning_rate, betas=adam_b)
-    optim_P_dec = torch.optim.Adam(P.parameters(), lr=learning_rate, betas=adam_b)
+    optim_GQ_enc = torch.optim.Adam(GQ.parameters(), lr=learning_rate, betas=adam_b)
+    optim_GP_dec = torch.optim.Adam(GP.parameters(), lr=learning_rate, betas=adam_b)
 
-
-
-    # Training loop phenotype autoencoder
-    for epoch in range(num_epochs_pp):
-        Q.train()
-        P.train()
+    # Training loop
+    for epoch in range(num_epochs):
+        GQ.train()
+        GP.train()
 
         epoch_losses = []
 
-        for i, phens in enumerate(train_loader_p):
-            phens = phens.to(device)
-            batch_size = phens.shape[0]
+        for i, gens in enumerate(train_loader):
+            batch_size = gens.shape[0]
 
-            P.zero_grad()
-            Q.zero_grad()
+            GP.zero_grad()
+            GQ.zero_grad()
 
             # Apply noise
-            noise_phens = phens + (phen_noise**0.5) * torch.randn(phens.shape).to(device)
+            noise_prob = 1 - gen_noise
+            pos_noise = np.random.binomial(1, noise_prob / 2, gens.shape)
+            neg_noise = np.random.binomial(1, noise_prob / 2, gens.shape)
 
-            z_sample = Q(noise_phens)
-            X_sample = P(z_sample)
+            noise_gens = torch.tensor(
+                np.where((gens + pos_noise - neg_noise) > 0, 1, 0),
+                dtype=torch.float32
+            ).to(device)
 
-            recon_loss = F.l1_loss(X_sample + EPS, phens[:, :n_phen] + EPS)
+            gens = gens.to(device)
+
+            z_sample = GQ(noise_gens)
+            X_sample = GP(z_sample)
+
+            g_recon_loss = F.binary_cross_entropy(X_sample + EPS, gens + EPS)
 
             # L1 and L2 regularization
-            l1_reg = torch.linalg.norm(torch.sum(Q.encoder[0].weight, axis=0), 1)
-            l2_reg = torch.linalg.norm(torch.sum(Q.encoder[0].weight, axis=0), 2)
+            l1_reg = torch.linalg.norm(torch.sum(GQ.encoder[0].weight, axis=0), 1)
+            l2_reg = torch.linalg.norm(torch.sum(GQ.encoder[0].weight, axis=0), 2)
 
-            recon_loss = recon_loss + l1_reg * weights_regularization + l2_reg * weights_regularization
+            total_loss = g_recon_loss + l1_reg * weights_regularization + l2_reg * weights_regularization
 
-            recon_loss.backward()
-            optim_Q_enc.step()
-            optim_P_dec.step()
+            total_loss.backward()
+            optim_GQ_enc.step()
+            optim_GP_dec.step()
 
-            epoch_losses.append(float(recon_loss.detach()))
-
-
+            epoch_losses.append(float(total_loss.detach()))
 
         # Test set evaluation
         if epoch % 1 == 0:
-            Q.eval()
-            P.eval()
+            GQ.eval()
+            GP.eval()
             test_losses = []
 
             with torch.no_grad():
-                for phens in test_loader_p:
-                    phens = phens.to(device)
-
-                    z_sample = Q(phens)
-                    X_sample = P(z_sample)
-
-                    test_loss = F.l1_loss(X_sample + EPS, phens[:, :n_phen] + EPS)
-                    test_losses.append(float(test_loss))
-
-            avg_test_loss_pp = np.mean(test_losses)
-            print(f"Epoch {epoch}, Test Loss pp: {avg_test_loss_pp:.4f}")
-
-    #load optimizer gencoderm shouldn't be needed since frozen
-    #optim_GQ_enc = torch.optim.Adam(GQ.parameters(), lr=learning_rate, betas=adam_b)
-
-    GQP = GQ_to_P_net(N=latent_space_p, latent_space_g=latent_space_g).to(device)
-
-    optim_GQP_dec = torch.optim.Adam(GQP.parameters(), lr=learning_rate, betas=adam_b)
-
-
-    #Training loop GP network
-    #g_p_rcon_loss = []
-
-    for n in range(num_epochs_gp):
-        epoch_losses_gp = []
-
-        for i, (phens, gens) in enumerate(train_loader_gp):
-            phens = phens.to(device)
-            gens = gens[:, : n_geno * n_alleles]
-
-            pos_noise = np.random.binomial(1, gen_noise / 2, gens.shape)
-            neg_noise = np.random.binomial(1, gen_noise / 2, gens.shape)
-            noise_gens = torch.tensor(
-                np.where((gens + pos_noise - neg_noise) > 0, 1, 0), dtype=torch.float32
-            )
-
-            noise_gens = noise_gens.to(device)
-
-            batch_size = phens.shape[0]
-
-            P.zero_grad()
-            GQP.zero_grad()
-            #GQ.zero_grad()
-
-            z_sample = GQ(noise_gens)
-            z_sample = GQP(z_sample)
-            X_sample = P(z_sample)
-
-
-            g_p_recon_loss = F.l1_loss(X_sample + EPS, phens[:, :n_phen] + EPS)
-
-            l1_reg = torch.linalg.norm(torch.sum(GQP.encoder[0].weight, axis=0), 1)
-            l2_reg = torch.linalg.norm(torch.sum(GQP.encoder[0].weight, axis=0), 2)
-            g_p_recon_loss = g_p_recon_loss + l1_reg * weights_regularization + l2_reg * weights_regularization
-
-            g_p_recon_loss.backward()
-            optim_P_dec.step()
-            #optim_GQ_enc.step()
-            optim_GQP_dec.step()
-
-
-    # Test set evaluation GP
-        if epoch % 1 == 0:
-            GQ.eval()
-            GQP.eval()
-            P.eval()
-            test_losses_gp = []
-
-            with torch.no_grad():
-                for phens, gens in test_loader_gp:
-                    phens = phens.to(device)
+                for gens in test_loader:
                     gens = gens.to(device)
 
                     z_sample = GQ(gens)
-                    z_sample = GQP(z_sample)
-                    X_sample = P(z_sample)
+                    X_sample = GP(z_sample)
 
-                    test_loss = F.l1_loss(X_sample + EPS, phens[:, :n_phen] + EPS)
-                    test_losses_gp.append(float(test_loss))
+                    test_loss = F.binary_cross_entropy(X_sample + EPS, gens + EPS)
+                    test_losses.append(float(test_loss))
 
-            avg_test_loss_gp = np.mean(test_losses_gp)
-            print(f"Epoch {epoch}, Test Loss gp: {avg_test_loss_gp:.4f}")
-    return avg_test_loss_gp
+            avg_test_loss = np.mean(test_losses)
+            print(f"Epoch {epoch}, Test Loss: {avg_test_loss:.4f}")
+
+    return avg_test_loss
 
 ##########################################################################################
 ##########################################################################################
 
+
+def train_final_model(best_params, train_loader, test_loader, n_geno, n_alleles, device, timestamp):
+    # Set up parameters from best trial
+    latent_space_g = best_params['latent_space_g']
+    gen_noise = best_params['gen_noise']
+    learning_rate = best_params['learning_rate']
+    num_epochs = best_params['num_epochs']
+    weights_regularization = best_params['weights_regularization']
+
+    # Constants
+    EPS = 1e-15
+    adam_b = (0.5, 0.999)
+    n_loci = n_geno * n_alleles
+
+    # Initialize models
+    GQ = GQ_net(n_loci=n_loci, N=latent_space_g).to(device)
+    GP = GP_net(n_loci=n_loci, N=latent_space_g).to(device)
+
+    # Optimizers
+    optim_GQ_enc = torch.optim.Adam(GQ.parameters(), lr=learning_rate, betas=adam_b)
+    optim_GP_dec = torch.optim.Adam(GP.parameters(), lr=learning_rate, betas=adam_b)
+
+    best_test_loss = float('inf')
+
+    # Training loop
+    for epoch in range(num_epochs):
+        GQ.train()
+        GP.train()
+
+        epoch_losses = []
+
+        for i, gens in enumerate(train_loader):
+            GP.zero_grad()
+            GQ.zero_grad()
+
+            # Apply noise
+            noise_prob = 1 - gen_noise
+            pos_noise = np.random.binomial(1, noise_prob / 2, gens.shape)
+            neg_noise = np.random.binomial(1, noise_prob / 2, gens.shape)
+
+            noise_gens = torch.tensor(
+                np.where((gens + pos_noise - neg_noise) > 0, 1, 0),
+                dtype=torch.float32
+            ).to(device)
+
+            gens = gens.to(device)
+
+            z_sample = GQ(noise_gens)
+            X_sample = GP(z_sample)
+
+            g_recon_loss = F.binary_cross_entropy(X_sample + EPS, gens + EPS)
+
+            l1_reg = torch.linalg.norm(torch.sum(GQ.encoder[0].weight, axis=0), 1)
+            l2_reg = torch.linalg.norm(torch.sum(GQ.encoder[0].weight, axis=0), 2)
+
+            total_loss = g_recon_loss + l1_reg * weights_regularization + l2_reg * weights_regularization
+
+            total_loss.backward()
+            optim_GQ_enc.step()
+            optim_GP_dec.step()
+
+            epoch_losses.append(float(total_loss.detach()))
+
+        # Test set evaluation
+        GQ.eval()
+        GP.eval()
+        test_losses = []
+
+        with torch.no_grad():
+            for gens in test_loader:
+                gens = gens.to(device)
+                z_sample = GQ(gens)
+                X_sample = GP(z_sample)
+                test_loss = F.binary_cross_entropy(X_sample + EPS, gens + EPS)
+                test_losses.append(float(test_loss))
+
+        avg_test_loss = np.mean(test_losses)
+        print(f"Final Training - Epoch {epoch}, Test Loss: {avg_test_loss:.4f}")
+
+        # Save best model
+        if avg_test_loss < best_test_loss:
+            best_test_loss = avg_test_loss
+            save_path = f'gpatlas/optuna/best_encoder_gg_{timestamp}.pt'
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': GQ.state_dict(),
+                'optimizer_state_dict': optim_GQ_enc.state_dict(),
+                'loss': best_test_loss,
+                'hyperparameters': best_params
+            }, save_path)
+            print(f"New best model saved with test loss: {avg_test_loss:.4f}")
+
+    return GQ, GP, best_test_loss
 
 def main():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Create output directory
+    output_dir = Path('gpatlas/optuna')
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     # Create study
     study = optuna.create_study(direction='minimize')
@@ -459,7 +401,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Run optimization
-    n_trials = 100  # Start small for testing
+    n_trials = 50
 
     try:
         # Create a list to store results as we go
@@ -468,11 +410,10 @@ def main():
         study.optimize(
             lambda trial: objective(
                 trial=trial,
-                train_loader=train_loader_pheno,
-                test_loader=test_loader_pheno,
+                train_loader=train_loader_geno,
+                test_loader=test_loader_geno,
                 n_geno=n_geno,
                 n_alleles=n_alleles,
-                n_phen=n_phen,
                 device=device
             ),
             n_trials=n_trials,
@@ -492,7 +433,7 @@ def main():
 
         # Save results to CSV
         results_df = pd.DataFrame(trial_results)
-        results_df.to_csv(f'gpatlas/optuna/optuna_trials_gp_{timestamp}.csv', index=False)
+        results_df.to_csv(f'gpatlas/optuna/optuna_trials_gg_{timestamp}.csv', index=False)
 
         # Save detailed study information to JSON
         study_info = {
@@ -503,14 +444,34 @@ def main():
             'all_trials': trial_results
         }
 
-        with open(f'gpatlas/optuna/optuna_study_gp_{timestamp}.json', 'w') as f:
+        with open(f'gpatlas/optuna/optuna_study_gg_{timestamp}.json', 'w') as f:
             json.dump(study_info, f, indent=4)
 
         print(f"\nResults saved to:")
-        print(f"- optuna_trials_{timestamp}.csv")
-        print(f"- optuna_study_{timestamp}.json")
+        print(f"- optuna_trials_gg_{timestamp}.csv")
+        print(f"- optuna_study_gg_{timestamp}.json")
 
-        # Return values that might be useful for further analysis
+        # Train final model with best parameters
+        if study.best_params is not None:
+            print("\nTraining final model with best parameters...")
+            GQ, GP, final_loss = train_final_model(
+                study.best_params,
+                train_loader_geno,
+                test_loader_geno,
+                n_geno=n_geno,
+                n_alleles=n_alleles,
+                device=device,
+                timestamp=timestamp
+            )
+
+            print(f"\nFinal model training completed!")
+            print(f"Final test loss: {final_loss:.4f}")
+
+            # Update study info with final model results
+            study_info['final_model_loss'] = float(final_loss)
+            with open(f'gpatlas/optuna/optuna_study_gg_{timestamp}.json', 'w') as f:
+                json.dump(study_info, f, indent=4)
+
         return study.best_params, study.best_value, trial_results, timestamp
 
     except Exception as e:
@@ -518,7 +479,7 @@ def main():
         traceback.print_exc()
 
         # Save error information
-        with open(f'gpatlas/optuna/optuna_error_gp_{timestamp}.txt', 'w') as f:
+        with open(f'gpatlas/optuna/optuna_error_gg_{timestamp}.txt', 'w') as f:
             f.write(f"Error occurred: {str(e)}\n")
             traceback.print_exc(file=f)
 

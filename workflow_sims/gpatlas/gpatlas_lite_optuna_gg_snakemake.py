@@ -32,44 +32,10 @@ num_workers = 10
 n_geno = 100000
 n_alleles = 2
 
-l1_lambda = 0.00000000000001
-l2_lambda = 0.00000000000001
 
 ##########################################################################################
 ##########################################################################################
 
-def convert_pickle_to_hdf5(pickle_path: Path, hdf5_path: Path, gzip: bool = True) -> Path:
-    data = pickle.load(open(pickle_path, "rb"))
-    str_dt = h5py.string_dtype(encoding="utf-8")
-
-    with h5py.File(hdf5_path, "w") as h5f:
-        metadata_group = h5f.create_group("metadata")
-
-        loci_array = np.array(data["loci"], dtype=str_dt)
-        metadata_group.create_dataset("loci", data=loci_array)
-
-        pheno_names_array = np.array(data["phenotype_names"], dtype=str_dt)
-        metadata_group.create_dataset("phenotype_names", data=pheno_names_array)
-
-        strains_group = h5f.create_group("strains")
-
-        for idx, strain_id in enumerate(data["strain_names"]):
-            strain_grp = strains_group.create_group(strain_id)
-
-            pheno = np.array(data["phenotypes"][idx], dtype=np.float64)
-            strain_grp.create_dataset("phenotype", data=pheno)
-
-            genotype = np.array(data["genotypes"][idx], dtype=np.int8)
-            strain_grp.create_dataset(
-                "genotype",
-                data=genotype,
-                chunks=True,
-                compression="gzip" if gzip else None,
-            )
-
-        print(f"{hdf5_path} generated from {pickle_path}.")
-
-    return hdf5_path
 
 class BaseDataset(Dataset):
     def __init__(self, hdf5_path: Path) -> None:
@@ -82,29 +48,6 @@ class BaseDataset(Dataset):
         return len(self._strain_group)
 
 ###########
-class GenoPhenoDataset(BaseDataset):
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
-        strain = self.strains[idx]
-
-        strain_data = cast(Dataset, self._strain_group[strain])
-
-        # Note: genotype is being cast as float32 here, reasons not well understood.
-        phens = torch.tensor(strain_data["phenotype"][:], dtype=torch.float32)
-        gens = torch.tensor(strain_data["genotype"][:], dtype=torch.float32).flatten()
-
-        return phens, gens
-
-class PhenoDataset(BaseDataset):
-    def __getitem__(self, idx: int):
-        strain = self.strains[idx]
-
-        strain_data = cast(Dataset, self._strain_group[strain])
-
-        # Note: genotype is being cast as float32 here, reasons not well understood.
-        phens = torch.tensor(strain_data["phenotype"][:], dtype=torch.float32)
-
-
-        return phens
 
 class GenoDataset(BaseDataset):
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
@@ -117,20 +60,12 @@ class GenoDataset(BaseDataset):
 
         return  gens
 
-#if __name__ == "__main__":
-#    parser = argparse.ArgumentParser(description="Convert a Dave's pickle data to an HDF5 file.")
-#    parser.add_argument("pickle_path", type=Path, help="Path to the input pickle file.")
-#    parser.add_argument("hdf5_path", type=Path, help="Path to the output HDF5 file.")
-#    parser.add_argument("gzip", type=bool, help="Gzip datasets (decreases read speed).")
-#    args = parser.parse_args()
-
-    #convert_pickle_to_hdf5(args.pickle_path, args.hdf5_path, args.gzip)
 
 ##########################################################################################
 ##########################################################################################
 
-train_data_geno = GenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_train.hdf5')
-test_data_geno = GenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_test.hdf5')
+train_data_geno = GenoDataset(snakemake.input['input_train_data'])
+test_data_geno = GenoDataset(snakemake.input['input_test_data'])
 
 ##########################################################################################
 ##########################################################################################
@@ -209,10 +144,11 @@ def objective(trial: optuna.Trial,
              device: torch.device) -> float:
 
     # Hyperparameters to optimize
-    latent_space_g = trial.suggest_int('latent_space_g', 100, 3000)
+    latent_space_g = trial.suggest_int('latent_space_g', 100, 3500)
     gen_noise = trial.suggest_float('gen_noise', 0.1, 0.7)
     learning_rate = trial.suggest_float('learning_rate', 1e-4, 1e-2, log=True)
-    num_epochs = trial.suggest_int('num_epochs', 1, 20)
+    num_epochs = trial.suggest_int('num_epochs', 1, 10)
+    weights_regularization = trial.suggest_float('weights_regularization', 1e-6, 1e-1, log=True)
 
     # Constants
     EPS = 1e-15
@@ -261,7 +197,7 @@ def objective(trial: optuna.Trial,
             l1_reg = torch.linalg.norm(torch.sum(GQ.encoder[0].weight, axis=0), 1)
             l2_reg = torch.linalg.norm(torch.sum(GQ.encoder[0].weight, axis=0), 2)
 
-            total_loss = g_recon_loss + l1_reg * 0 + l2_reg * 0
+            total_loss = g_recon_loss + l1_reg * weights_regularization + l2_reg * weights_regularization
 
             total_loss.backward()
             optim_GQ_enc.step()
@@ -300,6 +236,7 @@ def train_final_model(best_params, train_loader, test_loader, n_geno, n_alleles,
     gen_noise = best_params['gen_noise']
     learning_rate = best_params['learning_rate']
     num_epochs = best_params['num_epochs']
+    weights_regularization = best_params['weights_regularization']
 
     # Constants
     EPS = 1e-15
@@ -347,7 +284,7 @@ def train_final_model(best_params, train_loader, test_loader, n_geno, n_alleles,
             l1_reg = torch.linalg.norm(torch.sum(GQ.encoder[0].weight, axis=0), 1)
             l2_reg = torch.linalg.norm(torch.sum(GQ.encoder[0].weight, axis=0), 2)
 
-            total_loss = g_recon_loss + l1_reg * 0 + l2_reg * 0
+            total_loss = g_recon_loss + l1_reg * weights_regularization + l2_reg * weights_regularization
 
             total_loss.backward()
             optim_GQ_enc.step()
@@ -374,7 +311,8 @@ def train_final_model(best_params, train_loader, test_loader, n_geno, n_alleles,
         # Save best model
         if avg_test_loss < best_test_loss:
             best_test_loss = avg_test_loss
-            save_path = f'gpatlas/optuna/best_encoder_gg_{timestamp}.pt'
+            #save_path = f'gpatlas/optuna/best_encoder_gg_{timestamp}.pt'
+            save_path = snakemake.output['gg_encoder_optimized']
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': GQ.state_dict(),
@@ -386,11 +324,15 @@ def train_final_model(best_params, train_loader, test_loader, n_geno, n_alleles,
 
     return GQ, GP, best_test_loss
 
+##########################################################################################
+##########################################################################################
+
 def main():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     # Create output directory
-    output_dir = Path('gpatlas/optuna')
+    #output_dir = Path('gpatlas/optuna')
+    output_dir = Path(snakemake.output['optuna_gg_csv']).parent
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Create study
@@ -399,7 +341,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Run optimization
-    n_trials = 50
+    n_trials = 15
 
     try:
         # Create a list to store results as we go
@@ -431,7 +373,8 @@ def main():
 
         # Save results to CSV
         results_df = pd.DataFrame(trial_results)
-        results_df.to_csv(f'gpatlas/optuna/optuna_trials_gg_{timestamp}.csv', index=False)
+        #results_df.to_csv(f'gpatlas/optuna/optuna_trials_gg_{timestamp}.csv', index=False)
+        results_df.to_csv(snakemake.output['optuna_gg_csv'], index=False)
 
         # Save detailed study information to JSON
         study_info = {
@@ -442,12 +385,13 @@ def main():
             'all_trials': trial_results
         }
 
-        with open(f'gpatlas/optuna/optuna_study_gg_{timestamp}.json', 'w') as f:
+        #with open(f'gpatlas/optuna/optuna_study_gg_{timestamp}.json', 'w') as f:
+        with open(snakemake.output['optuna_gg_json'], 'w') as f:
             json.dump(study_info, f, indent=4)
 
         print(f"\nResults saved to:")
-        print(f"- optuna_trials_gg_{timestamp}.csv")
-        print(f"- optuna_study_gg_{timestamp}.json")
+        print(snakemake.output['optuna_gg_csv'])
+        print(snakemake.output['optuna_gg_json'])
 
         # Train final model with best parameters
         if study.best_params is not None:
@@ -467,7 +411,8 @@ def main():
 
             # Update study info with final model results
             study_info['final_model_loss'] = float(final_loss)
-            with open(f'gpatlas/optuna/optuna_study_gg_{timestamp}.json', 'w') as f:
+            #with open(f'gpatlas/optuna/optuna_study_gg_{timestamp}.json', 'w') as f:
+            with open(snakemake.output['optuna_gg_json'], 'w') as f:
                 json.dump(study_info, f, indent=4)
 
         return study.best_params, study.best_value, trial_results, timestamp
@@ -477,7 +422,9 @@ def main():
         traceback.print_exc()
 
         # Save error information
-        with open(f'gpatlas/optuna/optuna_error_gg_{timestamp}.txt', 'w') as f:
+        #with open(f'gpatlas/optuna/optuna_error_gg_{timestamp}.txt', 'w') as f:
+        error_log = Path(snakemake.output['optuna_gg_csv']).parent / f'optuna_error_gg_{timestamp}.txt'
+        with open(error_log, 'w') as f:
             f.write(f"Error occurred: {str(e)}\n")
             traceback.print_exc(file=f)
 
