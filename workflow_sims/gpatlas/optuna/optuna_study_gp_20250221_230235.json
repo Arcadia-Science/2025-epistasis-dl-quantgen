@@ -1,0 +1,718 @@
+{
+    "best_params": {
+        "latent_space_p": 755,
+        "learning_rate": 0.0036031214926392115,
+        "phen_noise": 0.0042460942250790515,
+        "gen_noise": 0.16313495824837257,
+        "num_epochs_pp": 19,
+        "num_epochs_gp": 1,
+        "weights_regularization": 0.00025050776584132934
+    },
+    "best_value": 1.8648871779441833,
+    "n_trials": 50,
+    "datetime": "20250221_230235",
+    "all_trials": [
+        {
+            "trial_number": 0,
+            "params": {
+                "latent_space_p": 122,
+                "learning_rate": 0.00011689606640564686,
+                "phen_noise": 0.0012055787206866476,
+                "gen_noise": 0.39363046314012573,
+                "num_epochs_pp": 15,
+                "num_epochs_gp": 3,
+                "weights_regularization": 9.353343246680806e-06
+            },
+            "value": 1.9624131321907043,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 1,
+            "params": {
+                "latent_space_p": 303,
+                "learning_rate": 0.0027338344132340395,
+                "phen_noise": 0.33406650333109517,
+                "gen_noise": 0.593252740600083,
+                "num_epochs_pp": 7,
+                "num_epochs_gp": 2,
+                "weights_regularization": 0.05837426990044571
+            },
+            "value": 1.9790135820706685,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 2,
+            "params": {
+                "latent_space_p": 739,
+                "learning_rate": 0.0001156183370145314,
+                "phen_noise": 0.005046064566800871,
+                "gen_noise": 0.5914580306281456,
+                "num_epochs_pp": 9,
+                "num_epochs_gp": 2,
+                "weights_regularization": 0.001099948316546365
+            },
+            "value": 1.9568110307057698,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 3,
+            "params": {
+                "latent_space_p": 166,
+                "learning_rate": 0.0021368601453125987,
+                "phen_noise": 0.0023399487696682854,
+                "gen_noise": 0.13730529287995422,
+                "num_epochs_pp": 11,
+                "num_epochs_gp": 5,
+                "weights_regularization": 0.0012385501428599545
+            },
+            "value": 1.9533804754416149,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 4,
+            "params": {
+                "latent_space_p": 292,
+                "learning_rate": 0.004375075035861612,
+                "phen_noise": 0.006170331991584598,
+                "gen_noise": 0.1918989178872782,
+                "num_epochs_pp": 18,
+                "num_epochs_gp": 3,
+                "weights_regularization": 0.01352686977178144
+            },
+            "value": 1.9630753596623738,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 5,
+            "params": {
+                "latent_space_p": 326,
+                "learning_rate": 0.002527478368191857,
+                "phen_noise": 0.008384161590914381,
+                "gen_noise": 0.538724749463226,
+                "num_epochs_pp": 1,
+                "num_epochs_gp": 3,
+                "weights_regularization": 0.0001106490365777234
+            },
+            "value": 1.9543198347091675,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 6,
+            "params": {
+                "latent_space_p": 362,
+                "learning_rate": 0.00390617054637841,
+                "phen_noise": 0.1272204208330827,
+                "gen_noise": 0.39806054398958635,
+                "num_epochs_pp": 1,
+                "num_epochs_gp": 4,
+                "weights_regularization": 1.0393292595809815e-06
+            },
+            "value": 1.94835431377093,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 7,
+            "params": {
+                "latent_space_p": 201,
+                "learning_rate": 0.0004465026340518263,
+                "phen_noise": 0.00990227974216765,
+                "gen_noise": 0.6517738157069607,
+                "num_epochs_pp": 6,
+                "num_epochs_gp": 3,
+                "weights_regularization": 0.036965200423882794
+            },
+            "value": 1.9655316174030304,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 8,
+            "params": {
+                "latent_space_p": 169,
+                "learning_rate": 0.007433258284183911,
+                "phen_noise": 0.0016674558687458964,
+                "gen_noise": 0.12870142328040163,
+                "num_epochs_pp": 20,
+                "num_epochs_gp": 2,
+                "weights_regularization": 1.3760439453017763e-06
+            },
+            "value": 1.958032449086507,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 9,
+            "params": {
+                "latent_space_p": 440,
+                "learning_rate": 0.0008131911138412951,
+                "phen_noise": 0.0011599113959151178,
+                "gen_noise": 0.16631901238535385,
+                "num_epochs_pp": 5,
+                "num_epochs_gp": 3,
+                "weights_regularization": 0.02916126671117902
+            },
+            "value": 1.9415864547093709,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 10,
+            "params": {
+                "latent_space_p": 575,
+                "learning_rate": 0.0006665184824464907,
+                "phen_noise": 0.03699928398597661,
+                "gen_noise": 0.26308728241915647,
+                "num_epochs_pp": 5,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.005657661489592705
+            },
+            "value": 1.9173772831757863,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 11,
+            "params": {
+                "latent_space_p": 593,
+                "learning_rate": 0.0006058328981812316,
+                "phen_noise": 0.04427778337563374,
+                "gen_noise": 0.24636017634439297,
+                "num_epochs_pp": 4,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.004943919866912948
+            },
+            "value": 1.9092846115430195,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 12,
+            "params": {
+                "latent_space_p": 591,
+                "learning_rate": 0.00037255289213780927,
+                "phen_noise": 0.042935861979467436,
+                "gen_noise": 0.2765546242564106,
+                "num_epochs_pp": 4,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.00493692879477211
+            },
+            "value": 1.9342905680338542,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 13,
+            "params": {
+                "latent_space_p": 551,
+                "learning_rate": 0.000999755205771745,
+                "phen_noise": 0.032725483021035534,
+                "gen_noise": 0.31405595973141975,
+                "num_epochs_pp": 12,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.000151715162446155
+            },
+            "value": 1.87044957280159,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 14,
+            "params": {
+                "latent_space_p": 546,
+                "learning_rate": 0.0013132738159305705,
+                "phen_noise": 0.10147557636360847,
+                "gen_noise": 0.3151425698063709,
+                "num_epochs_pp": 13,
+                "num_epochs_gp": 1,
+                "weights_regularization": 7.940287559434416e-05
+            },
+            "value": 1.872727870941162,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 15,
+            "params": {
+                "latent_space_p": 493,
+                "learning_rate": 0.0014044293106570626,
+                "phen_noise": 0.890940630053569,
+                "gen_noise": 0.33876831540829866,
+                "num_epochs_pp": 13,
+                "num_epochs_gp": 1,
+                "weights_regularization": 5.313418706504039e-05
+            },
+            "value": 1.8756876190503438,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 16,
+            "params": {
+                "latent_space_p": 729,
+                "learning_rate": 0.0013507521010958992,
+                "phen_noise": 0.12443922298872724,
+                "gen_noise": 0.48342667091795544,
+                "num_epochs_pp": 14,
+                "num_epochs_gp": 2,
+                "weights_regularization": 1.6115751522852125e-05
+            },
+            "value": 2.064892460902532,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 17,
+            "params": {
+                "latent_space_p": 796,
+                "learning_rate": 0.0002721578109012738,
+                "phen_noise": 0.017963004597553133,
+                "gen_noise": 0.33456162761214464,
+                "num_epochs_pp": 11,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.0003055767259832718
+            },
+            "value": 1.8767390648523967,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 18,
+            "params": {
+                "latent_space_p": 477,
+                "learning_rate": 0.001127535887691479,
+                "phen_noise": 0.1037085701541804,
+                "gen_noise": 0.4974869585519338,
+                "num_epochs_pp": 16,
+                "num_epochs_gp": 4,
+                "weights_regularization": 2.2535183062981105e-05
+            },
+            "value": 1.948822279771169,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 19,
+            "params": {
+                "latent_space_p": 30,
+                "learning_rate": 0.00024376484911603212,
+                "phen_noise": 0.3687552019254722,
+                "gen_noise": 0.3414442313913604,
+                "num_epochs_pp": 9,
+                "num_epochs_gp": 2,
+                "weights_regularization": 0.00029960084973758565
+            },
+            "value": 1.963981032371521,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 20,
+            "params": {
+                "latent_space_p": 660,
+                "learning_rate": 0.007713905497479634,
+                "phen_noise": 0.016679170925388037,
+                "gen_noise": 0.4598861164330573,
+                "num_epochs_pp": 17,
+                "num_epochs_gp": 1,
+                "weights_regularization": 4.516133605904566e-06
+            },
+            "value": 1.8892755111058552,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 21,
+            "params": {
+                "latent_space_p": 505,
+                "learning_rate": 0.0015279388750182872,
+                "phen_noise": 0.9275716683494764,
+                "gen_noise": 0.33040877143677205,
+                "num_epochs_pp": 13,
+                "num_epochs_gp": 1,
+                "weights_regularization": 6.274119313973366e-05
+            },
+            "value": 1.872642348210017,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 22,
+            "params": {
+                "latent_space_p": 529,
+                "learning_rate": 0.0017386768901733463,
+                "phen_noise": 0.8646149474835897,
+                "gen_noise": 0.23145681957008055,
+                "num_epochs_pp": 12,
+                "num_epochs_gp": 1,
+                "weights_regularization": 6.997497308436404e-05
+            },
+            "value": 1.871784508228302,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 23,
+            "params": {
+                "latent_space_p": 660,
+                "learning_rate": 0.0019711981925719657,
+                "phen_noise": 0.9624204538295644,
+                "gen_noise": 0.23396013897137163,
+                "num_epochs_pp": 12,
+                "num_epochs_gp": 2,
+                "weights_regularization": 0.0009498801021822788
+            },
+            "value": 2.0782028635342917,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 24,
+            "params": {
+                "latent_space_p": 410,
+                "learning_rate": 0.0008994524912748808,
+                "phen_noise": 0.41257743621920734,
+                "gen_noise": 0.19606345763892472,
+                "num_epochs_pp": 9,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.00015243585183025333
+            },
+            "value": 1.8804288109143574,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 25,
+            "params": {
+                "latent_space_p": 526,
+                "learning_rate": 0.0036241341604046416,
+                "phen_noise": 0.22359534919814902,
+                "gen_noise": 0.4176626153583573,
+                "num_epochs_pp": 15,
+                "num_epochs_gp": 2,
+                "weights_regularization": 2.777055707508778e-05
+            },
+            "value": 2.0048851668834686,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 26,
+            "params": {
+                "latent_space_p": 445,
+                "learning_rate": 0.0018999891044828967,
+                "phen_noise": 0.5461877653534861,
+                "gen_noise": 0.30110767641663244,
+                "num_epochs_pp": 13,
+                "num_epochs_gp": 1,
+                "weights_regularization": 5.090454713567542e-05
+            },
+            "value": 1.8755257527033489,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 27,
+            "params": {
+                "latent_space_p": 649,
+                "learning_rate": 0.00542384161694356,
+                "phen_noise": 0.21774882835387185,
+                "gen_noise": 0.36998805999262263,
+                "num_epochs_pp": 10,
+                "num_epochs_gp": 5,
+                "weights_regularization": 5.077565141365144e-06
+            },
+            "value": 1.965599924325943,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 28,
+            "params": {
+                "latent_space_p": 371,
+                "learning_rate": 0.0016168916099082047,
+                "phen_noise": 0.6143114585179323,
+                "gen_noise": 0.10206408676621664,
+                "num_epochs_pp": 19,
+                "num_epochs_gp": 4,
+                "weights_regularization": 0.0005486578525720158
+            },
+            "value": 1.9536720116933186,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 29,
+            "params": {
+                "latent_space_p": 523,
+                "learning_rate": 0.0005352343719418328,
+                "phen_noise": 0.0601788281981741,
+                "gen_noise": 0.2157972067513002,
+                "num_epochs_pp": 15,
+                "num_epochs_gp": 2,
+                "weights_regularization": 7.1314395179794125e-06
+            },
+            "value": 1.929395357767741,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 30,
+            "params": {
+                "latent_space_p": 656,
+                "learning_rate": 0.0010088997568301014,
+                "phen_noise": 0.23325968575749959,
+                "gen_noise": 0.4346641294145244,
+                "num_epochs_pp": 8,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.000168776951316347
+            },
+            "value": 1.877202530701955,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 31,
+            "params": {
+                "latent_space_p": 557,
+                "learning_rate": 0.0012022696641672344,
+                "phen_noise": 0.07722257674275909,
+                "gen_noise": 0.296784581989335,
+                "num_epochs_pp": 13,
+                "num_epochs_gp": 1,
+                "weights_regularization": 6.34971210514023e-05
+            },
+            "value": 1.8786246081193287,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 32,
+            "params": {
+                "latent_space_p": 477,
+                "learning_rate": 0.0027499931783390775,
+                "phen_noise": 0.022699027108751685,
+                "gen_noise": 0.3174871399317216,
+                "num_epochs_pp": 12,
+                "num_epochs_gp": 1,
+                "weights_regularization": 8.853387443699417e-05
+            },
+            "value": 1.8749776979287465,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 33,
+            "params": {
+                "latent_space_p": 613,
+                "learning_rate": 0.0008088327496947309,
+                "phen_noise": 0.7323342040770365,
+                "gen_noise": 0.2820872225583411,
+                "num_epochs_pp": 14,
+                "num_epochs_gp": 2,
+                "weights_regularization": 1.311236438582782e-05
+            },
+            "value": 1.9574186503887177,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 34,
+            "params": {
+                "latent_space_p": 531,
+                "learning_rate": 0.001670385970814853,
+                "phen_noise": 0.3236016020052014,
+                "gen_noise": 0.37942747905036006,
+                "num_epochs_pp": 10,
+                "num_epochs_gp": 1,
+                "weights_regularization": 3.805444269898732e-05
+            },
+            "value": 1.8843923111756642,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 35,
+            "params": {
+                "latent_space_p": 256,
+                "learning_rate": 0.0030799066063010526,
+                "phen_noise": 0.0032685313319091663,
+                "gen_noise": 0.3596265273174904,
+                "num_epochs_pp": 12,
+                "num_epochs_gp": 2,
+                "weights_regularization": 0.0005173167587014842
+            },
+            "value": 1.956402063369751,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 36,
+            "params": {
+                "latent_space_p": 725,
+                "learning_rate": 0.001963823647971748,
+                "phen_noise": 0.027478130712389026,
+                "gen_noise": 0.16990479276519,
+                "num_epochs_pp": 17,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.001988634110805583
+            },
+            "value": 1.869463135798772,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 37,
+            "params": {
+                "latent_space_p": 724,
+                "learning_rate": 0.002535482893042217,
+                "phen_noise": 0.012671876166054854,
+                "gen_noise": 0.1750621401218116,
+                "num_epochs_pp": 17,
+                "num_epochs_gp": 2,
+                "weights_regularization": 0.0008843078916618148
+            },
+            "value": 1.934347669283549,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 38,
+            "params": {
+                "latent_space_p": 773,
+                "learning_rate": 0.005168956965211231,
+                "phen_noise": 0.026409136965189175,
+                "gen_noise": 0.22571083361212232,
+                "num_epochs_pp": 16,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.0016699254381503778
+            },
+            "value": 1.8730508983135223,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 39,
+            "params": {
+                "latent_space_p": 687,
+                "learning_rate": 0.002272378180666854,
+                "phen_noise": 0.008544764301997496,
+                "gen_noise": 0.16043352014227133,
+                "num_epochs_pp": 18,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.00020211458874885464
+            },
+            "value": 1.8661919434865315,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 40,
+            "params": {
+                "latent_space_p": 708,
+                "learning_rate": 0.0021384953687933737,
+                "phen_noise": 0.004676108025740644,
+                "gen_noise": 0.11864295793387497,
+                "num_epochs_pp": 20,
+                "num_epochs_gp": 2,
+                "weights_regularization": 0.002344696069732825
+            },
+            "value": 1.976569374402364,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 41,
+            "params": {
+                "latent_space_p": 698,
+                "learning_rate": 0.0033864857593648495,
+                "phen_noise": 0.00826840369127564,
+                "gen_noise": 0.16240488862217922,
+                "num_epochs_pp": 18,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.0001820707255754752
+            },
+            "value": 1.8688139816125233,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 42,
+            "params": {
+                "latent_space_p": 686,
+                "learning_rate": 0.003309371891601127,
+                "phen_noise": 0.007472294562316497,
+                "gen_noise": 0.16351640390092786,
+                "num_epochs_pp": 18,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.00020762458791719388
+            },
+            "value": 1.8704076210657756,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 43,
+            "params": {
+                "latent_space_p": 692,
+                "learning_rate": 0.004613679896919018,
+                "phen_noise": 0.006692182920611358,
+                "gen_noise": 0.1405785891180341,
+                "num_epochs_pp": 18,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.0002724752768543669
+            },
+            "value": 1.868165264527003,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 44,
+            "params": {
+                "latent_space_p": 694,
+                "learning_rate": 0.005781504937143659,
+                "phen_noise": 0.006912635200561988,
+                "gen_noise": 0.15094408918966237,
+                "num_epochs_pp": 18,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.0004508454369304493
+            },
+            "value": 1.8722434838612874,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 45,
+            "params": {
+                "latent_space_p": 755,
+                "learning_rate": 0.0036031214926392115,
+                "phen_noise": 0.0042460942250790515,
+                "gen_noise": 0.16313495824837257,
+                "num_epochs_pp": 19,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.00025050776584132934
+            },
+            "value": 1.8648871779441833,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 46,
+            "params": {
+                "latent_space_p": 761,
+                "learning_rate": 0.004329389893569466,
+                "phen_noise": 0.003937821300036243,
+                "gen_noise": 0.132745124744659,
+                "num_epochs_pp": 19,
+                "num_epochs_gp": 2,
+                "weights_regularization": 0.00231427567237865
+            },
+            "value": 1.997537910938263,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 47,
+            "params": {
+                "latent_space_p": 800,
+                "learning_rate": 0.008792023779959234,
+                "phen_noise": 0.0022154446179402064,
+                "gen_noise": 0.1963216008814187,
+                "num_epochs_pp": 19,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.012278241020896363
+            },
+            "value": 1.925600528717041,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 48,
+            "params": {
+                "latent_space_p": 621,
+                "learning_rate": 0.006323412273491411,
+                "phen_noise": 0.010671221610891384,
+                "gen_noise": 0.10500658440792891,
+                "num_epochs_pp": 20,
+                "num_epochs_gp": 3,
+                "weights_regularization": 0.0007528600121996437
+            },
+            "value": 1.96732230981191,
+            "state": "COMPLETE"
+        },
+        {
+            "trial_number": 49,
+            "params": {
+                "latent_space_p": 742,
+                "learning_rate": 0.004356747245926453,
+                "phen_noise": 0.0055297016729848065,
+                "gen_noise": 0.14084428544498825,
+                "num_epochs_pp": 17,
+                "num_epochs_gp": 1,
+                "weights_regularization": 0.00029480039717979606
+            },
+            "value": 1.8693883220354717,
+            "state": "COMPLETE"
+        }
+    ],
+    "final_model_loss_pp": 0.22611647844314575,
+    "final_model_loss_gp": 1.8694015145301819
+}

@@ -7,3 +7,6 @@ workflow_sims/alphasimr_output/*
 *.pdf
 *.svg
 *.pt
+*.html
+*.hdf5
+gpatlas/optuna/*
