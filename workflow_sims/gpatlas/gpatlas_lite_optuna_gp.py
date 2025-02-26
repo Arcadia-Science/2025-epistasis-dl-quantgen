@@ -295,7 +295,7 @@ def objective(trial: optuna.Trial,
 
     # Hyperparameters to optimize
     latent_space_p = trial.suggest_int('latent_space_p', 15, 800)
-    learning_rate = trial.suggest_float('learning_rate', 1e-4, 1e-2, log=True)
+    learning_rate = trial.suggest_float('learning_rate', 1e-6, 1e-2, log=True)
     phen_noise = trial.suggest_float('phen_noise', 0.001, 1, log=True)
     gen_noise = trial.suggest_float('gen_noise', 0.1, 0.7)
     num_epochs_pp = trial.suggest_int('num_epochs_pp', 1, 20)
@@ -477,6 +477,10 @@ def train_final_model(best_params, train_loader_p, train_loader_gp, test_loader_
     best_test_loss_pp = float('inf')
     best_test_loss_gp = float('inf')
 
+    # Create fixed filenames for the best models
+    pp_save_path = f'gpatlas/optuna/best_encoder_pp_{timestamp}.pt'
+    gp_save_path = f'gpatlas/optuna/best_encoder_gp_{timestamp}.pt'
+
     # Training loop for phenotype autoencoder
     print("\nTraining phenotype autoencoder...")
     for epoch in range(num_epochs_pp):
@@ -526,10 +530,9 @@ def train_final_model(best_params, train_loader_p, train_loader_gp, test_loader_
         avg_test_loss = np.mean(test_losses)
         print(f"PP Training - Epoch {epoch}, Test Loss: {avg_test_loss:.4f}")
 
-        # Save best PP model
+        # Save best PP model (overwriting previous best)
         if avg_test_loss < best_test_loss_pp:
             best_test_loss_pp = avg_test_loss
-            save_path = f'gpatlas/optuna/best_encoder_pp_{timestamp}_loss_{avg_test_loss:.4f}.pt'
             torch.save({
                 'epoch': epoch,
                 'encoder_state_dict': Q.state_dict(),
@@ -538,7 +541,7 @@ def train_final_model(best_params, train_loader_p, train_loader_gp, test_loader_
                 'optimizer_P_state_dict': optim_P_dec.state_dict(),
                 'loss': best_test_loss_pp,
                 'hyperparameters': best_params
-            }, save_path)
+            }, pp_save_path)
             print(f"New best PP model saved with test loss: {avg_test_loss:.4f}")
 
     # Training loop for GP network
@@ -598,17 +601,16 @@ def train_final_model(best_params, train_loader_p, train_loader_gp, test_loader_
         avg_test_loss = np.mean(test_losses)
         print(f"GP Training - Epoch {epoch}, Test Loss: {avg_test_loss:.4f}")
 
-        # Save best GP model
+        # Save best GP model (overwriting previous best)
         if avg_test_loss < best_test_loss_gp:
             best_test_loss_gp = avg_test_loss
-            save_path = f'gpatlas/optuna/best_encoder_gp_{timestamp}_loss_{avg_test_loss:.4f}.pt'
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': GQP.state_dict(),
                 'optimizer_state_dict': optim_GQP_dec.state_dict(),
                 'loss': best_test_loss_gp,
                 'hyperparameters': best_params
-            }, save_path)
+            }, gp_save_path)
             print(f"New best GP model saved with test loss: {avg_test_loss:.4f}")
 
     return Q, P, GQP, best_test_loss_pp, best_test_loss_gp
