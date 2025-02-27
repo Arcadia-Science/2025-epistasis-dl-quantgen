@@ -209,11 +209,11 @@ def objective(trial: optuna.Trial,
              device: torch.device) -> float:
 
     # Hyperparameters to optimize
-    latent_space_g = trial.suggest_int('latent_space_g', 100, 3500)
-    gen_noise = trial.suggest_float('gen_noise', 0.1, 0.7)
-    learning_rate = trial.suggest_float('learning_rate', 1e-4, 1e-2, log=True)
-    num_epochs = trial.suggest_int('num_epochs', 1, 10)
-    weights_regularization = trial.suggest_float('weights_regularization', 1e-6, 1e-1, log=True)
+    latent_space_g = trial.suggest_int('latent_space_g', 3500, 3500)#('latent_space_g', 100, 3500)
+    gen_noise = trial.suggest_float('gen_noise', 0.61, 0.61)#('gen_noise', 0.1, 0.7)
+    learning_rate = trial.suggest_float('learning_rate', 3e-4, 3e-4, log=True)#('learning_rate', 1e-4, 1e-2, log=True)
+    num_epochs = trial.suggest_int('num_epochs', 16, 16)#('num_epochs', 1, 10)
+    weights_regularization = trial.suggest_float('weights_regularization', 1e-6, 1e-6, log=True)#('weights_regularization', 1e-6, 1e-1, log=True)
 
     # Constants
     EPS = 1e-15
@@ -376,14 +376,22 @@ def train_final_model(best_params, train_loader, test_loader, n_geno, n_alleles,
         # Save best model
         if avg_test_loss < best_test_loss:
             best_test_loss = avg_test_loss
-            save_path = f'gpatlas/optuna/best_encoder_gg_{timestamp}.pt'
+            save_path_enc = f'gpatlas/optuna/best_encoder_gg_{timestamp}.pt'
+            save_path_dec = f'gpatlas/optuna/best_decoder_gg_{timestamp}.pt'
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': GQ.state_dict(),
                 'optimizer_state_dict': optim_GQ_enc.state_dict(),
                 'loss': best_test_loss,
                 'hyperparameters': best_params
-            }, save_path)
+            }, save_path_enc)
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': GP.state_dict(),
+                'optimizer_state_dict': optim_GP_dec.state_dict(),
+                'loss': best_test_loss,
+                'hyperparameters': best_params
+            }, save_path_dec)
             print(f"New best model saved with test loss: {avg_test_loss:.4f}")
 
     return GQ, GP, best_test_loss
@@ -401,7 +409,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Run optimization
-    n_trials = 50
+    n_trials = 1
 
     try:
         # Create a list to store results as we go

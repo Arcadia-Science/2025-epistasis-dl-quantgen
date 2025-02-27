@@ -10,3 +10,5 @@ workflow_sims/alphasimr_output/*
 *.html
 *.hdf5
 gpatlas/optuna/*
+*.csv
+*.json

@@ -542,9 +542,10 @@ def train_final_model(best_params, train_loader_p, train_loader_gp, test_loader_
 
     # Training loop for GP network
     print("\nTraining genotype-phenotype network...")
+    
+    P.eval()  # Keep phenotype decoder in eval mode
     for epoch in range(num_epochs_gp):
         GQP.train()
-        P.eval()  # Keep phenotype decoder in eval mode
 
         epoch_losses = []
 
