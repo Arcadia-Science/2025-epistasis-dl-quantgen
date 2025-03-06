@@ -25,7 +25,7 @@ import traceback
 
 batch_size = 128
 num_workers = 10
-
+num_epochs_final = 30
 ##########################################################################################
 ##########################################################################################
 
@@ -212,7 +212,7 @@ def objective(trial: optuna.Trial,
     latent_space_g = trial.suggest_int('latent_space_g', 3500, 3500)#('latent_space_g', 100, 3500)
     gen_noise = trial.suggest_float('gen_noise', 0.61, 0.61)#('gen_noise', 0.1, 0.7)
     learning_rate = trial.suggest_float('learning_rate', 3e-4, 3e-4, log=True)#('learning_rate', 1e-4, 1e-2, log=True)
-    num_epochs = trial.suggest_int('num_epochs', 16, 16)#('num_epochs', 1, 10)
+    num_epochs = trial.suggest_int('num_epochs', 1, 1)#('num_epochs', 1, 10)
     weights_regularization = trial.suggest_float('weights_regularization', 1e-6, 1e-6, log=True)#('weights_regularization', 1e-6, 1e-1, log=True)
 
     # Constants
@@ -300,7 +300,8 @@ def train_final_model(best_params, train_loader, test_loader, n_geno, n_alleles,
     latent_space_g = best_params['latent_space_g']
     gen_noise = best_params['gen_noise']
     learning_rate = best_params['learning_rate']
-    num_epochs = best_params['num_epochs']
+    #num_epochs = best_params['num_epochs']
+    num_epochs = num_epochs_final
     weights_regularization = best_params['weights_regularization']
 
     # Constants

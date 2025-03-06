@@ -25,7 +25,8 @@ import traceback
 
 batch_size = 128
 num_workers = 10
-
+num_epochs_final = 25
+n_trials_optuna = 30
 ##########################################################################################
 ##########################################################################################
 
@@ -145,9 +146,9 @@ def objective(trial: optuna.Trial,
 
     # Hyperparameters to optimize
     latent_space_g = trial.suggest_int('latent_space_g', 100, 3500)
-    gen_noise = trial.suggest_float('gen_noise', 0.1, 0.7)
-    learning_rate = trial.suggest_float('learning_rate', 1e-4, 1e-2, log=True)
-    num_epochs = trial.suggest_int('num_epochs', 1, 10)
+    gen_noise = trial.suggest_float('gen_noise', 0.1, 0.8)
+    learning_rate = trial.suggest_float('learning_rate', 1e-6, 1e-2, log=True)
+    num_epochs = trial.suggest_int('num_epochs', 6, 6)
     weights_regularization = trial.suggest_float('weights_regularization', 1e-6, 1e-1, log=True)
 
     # Constants
@@ -235,7 +236,7 @@ def train_final_model(best_params, train_loader, test_loader, n_geno, n_alleles,
     latent_space_g = best_params['latent_space_g']
     gen_noise = best_params['gen_noise']
     learning_rate = best_params['learning_rate']
-    num_epochs = best_params['num_epochs']
+    num_epochs = num_epochs_final
     weights_regularization = best_params['weights_regularization']
 
     # Constants
@@ -312,14 +313,22 @@ def train_final_model(best_params, train_loader, test_loader, n_geno, n_alleles,
         if avg_test_loss < best_test_loss:
             best_test_loss = avg_test_loss
             #save_path = f'gpatlas/optuna/best_encoder_gg_{timestamp}.pt'
-            save_path = snakemake.output['gg_encoder_optimized']
+            save_path_enc = snakemake.output['gg_encoder_optimized']
+            save_path_dec = snakemake.output['gg_decoder_optimized']
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': GQ.state_dict(),
                 'optimizer_state_dict': optim_GQ_enc.state_dict(),
                 'loss': best_test_loss,
                 'hyperparameters': best_params
-            }, save_path)
+            }, save_path_enc)
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': GP.state_dict(),
+                'optimizer_state_dict': optim_GP_dec.state_dict(),
+                'loss': best_test_loss,
+                'hyperparameters': best_params
+            }, save_path_dec)
             print(f"New best model saved with test loss: {avg_test_loss:.4f}")
 
     return GQ, GP, best_test_loss
@@ -341,7 +350,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Run optimization
-    n_trials = 15
+    n_trials = n_trials_optuna
 
     try:
         # Create a list to store results as we go

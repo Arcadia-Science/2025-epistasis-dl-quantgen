@@ -24,7 +24,7 @@ import traceback
 
 batch_size = 128
 num_workers = 10
-
+n_trials_optuna = 30
 ##########################################################################################
 ##########################################################################################
 n_phen = 25
@@ -295,7 +295,7 @@ def objective(trial: optuna.Trial,
     phen_noise = trial.suggest_float('phen_noise', 0.001, 1, log=True)
     gen_noise = trial.suggest_float('gen_noise', 0.1, 0.7)
     num_epochs_pp = trial.suggest_int('num_epochs_pp', 1, 20)
-    num_epochs_gp = trial.suggest_int('num_epochs_gp', 1, 5)
+    num_epochs_gp = trial.suggest_int('num_epochs_gp', 1, 10)
     weights_regularization = trial.suggest_float('weights_regularization', 1e-6, 1e-1, log=True)
 
     # Constants
@@ -381,7 +381,7 @@ def objective(trial: optuna.Trial,
     P.eval() #set pheno decoder to eval only
 
     for epoch_gp in range(num_epochs_gp):
-        epoch_losses_gp = []
+        #epoch_losses_gp = []
 
         for i, (phens, gens) in enumerate(train_loader_gp):
             phens = phens.to(device)
@@ -542,7 +542,7 @@ def train_final_model(best_params, train_loader_p, train_loader_gp, test_loader_
 
     # Training loop for GP network
     print("\nTraining genotype-phenotype network...")
-    
+
     P.eval()  # Keep phenotype decoder in eval mode
     for epoch in range(num_epochs_gp):
         GQP.train()
@@ -628,7 +628,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Run optimization
-    n_trials = 50
+    n_trials = n_trials_optuna
 
     try:
         # Create a list to store results as we go
