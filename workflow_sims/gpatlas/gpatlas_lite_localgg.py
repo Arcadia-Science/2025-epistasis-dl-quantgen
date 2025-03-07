@@ -10,17 +10,21 @@ from torch.utils.data.dataset import Dataset
 from pathlib import Path
 from typing import cast
 import h5py
+import time as tm
+import numpy as np
 
 #variables
 
 n_loci = 100000
 n_alleles = 2
 window_step = 10
-window_stride = 5
-glatent = 10000
+window_stride = 10
+glatent = 2000
 input_length = n_loci * n_alleles
+genetic_noise = 0.95
+learning_rate = 0.001
 
-n_epochs = 15
+n_epochs = 51
 batch_size = 128
 num_workers = 9
 base_file_name = 'gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_'
@@ -73,8 +77,8 @@ test_loader_geno = torch.utils.data.DataLoader(
 #####################################################################################################################
 #####################################################################################################################
 
-class LDGroupedAutoencoder(nn.Module):
-    def __init__(self, input_length=input_length, loci_count=n_loci, window_size=window_step, latent_dim=glatent):
+class local_gg_encoder(nn.Module):
+    def __init__(self, input_length=input_length, loci_count=n_loci, window_size=window_step, latent_dim=glatent, window_stride=window_stride):
         """
         LD-aware autoencoder for genetic data using grouped convolution.
         Each window of loci is processed independently.
@@ -91,325 +95,210 @@ class LDGroupedAutoencoder(nn.Module):
         self.loci_count = loci_count      # 100,000 loci
         self.window_size = window_size    # 10 loci per group
         self.latent_dim = latent_dim      # Latent space dimension
+        self.window_stride = window_stride #steps between LD windows
 
         # Calculate the number of groups
         self.n_groups = loci_count // window_size  # 10,000 groups
 
-        # Encoder layers
-        self.encoder_conv = nn.Conv1d(
-            in_channels=self.n_groups,           # One channel per window
-            out_channels=self.n_groups,          # One output per window
-            kernel_size=window_size * 2,         # Cover entire window (2 alleles per locus)
-            stride=window_stride,              # Non-overlapping
-            groups=self.n_groups,                # Each window processed independently
-            bias=True
+        # Locally connected block to catch LD
+        self.encoder_conv_block = nn.Sequential(
+            nn.Conv1d(
+                in_channels=self.n_groups,
+                out_channels=self.n_groups,
+                kernel_size=window_size * 2,
+                stride=window_stride * 2,
+                groups=self.n_groups,
+                bias=True
+            ),
+            nn.LeakyReLU(0.1)
         )
 
-        self.encoder_act = nn.LeakyReLU(0.2)
-
-        # Fully connected layer to latent space
-        self.encoder_fc = nn.Linear(self.n_groups, latent_dim)
-        self.encoder_fc_act = nn.LeakyReLU(0.1)
-
-        # Decoder - mirror of encoder
-        self.decoder_fc = nn.Linear(latent_dim, self.n_groups)
-        self.decoder_fc_act = nn.LeakyReLU(0.1)
-
-        # Expand each window back to original size
-        self.decoder_conv = nn.ConvTranspose1d(
-            in_channels=self.n_groups,
-            out_channels=self.n_groups,
-            kernel_size=window_size * 2,
-            stride=window_stride,
-            groups=self.n_groups,
-            bias=True
+        # Fully connected block for encoder
+        self.encoder_fc_block = nn.Sequential(
+            nn.Linear(self.n_groups, latent_dim),
+            nn.BatchNorm1d(latent_dim, momentum=0.8),
+            nn.LeakyReLU(0.1)
         )
-
-        self.final_act = nn.Sigmoid()
 
     def forward(self, x):
-        """
-        Forward pass through the autoencoder
-
-        Args:
-            x: Input tensor of shape [batch_size, input_length]
-
-        Returns:
-            Reconstructed tensor of shape [batch_size, input_length]
-        """
-        # Input shape: [batch_size, input_length]
-        #print(f"Input shape: {x.shape}")
-        #print(f"n_groups: {self.n_groups}, window_size: {self.window_size}")
-
-
         batch_size = x.size(0)
-        #print(f"Attempting to reshape to: {batch_size}, {self.n_groups}, {self.window_size * 2}")
-
-        # Reshape to group by windows
-        # [batch_size, input_length] -> [batch_size, n_groups, window_size*2]
-        x = x.reshape(batch_size, self.n_groups, self.window_size * 2)
-
-        # Apply grouped convolution - each window processed independently
-        x = self.encoder_conv(x)
-        x = self.encoder_act(x)
-
-        # Flatten to [batch_size, n_groups]
-        x = x.reshape(batch_size, self.n_groups)
-
-        # Map to latent space
-        latent = self.encoder_fc(x)
-        latent = self.encoder_fc_act(latent)
-
-        # Decode from latent space
-        x = self.decoder_fc(latent)
-        x = self.decoder_fc_act(x)
-
-        # Reshape for transposed convolution
-        # [batch_size, n_groups] -> [batch_size, n_groups, 1]
-        x = x.reshape(batch_size, self.n_groups, 1)
-
-        # Expand each window back to original size
-        x = self.decoder_conv(x)
-
-        # Reshape to original format
-        # [batch_size, n_groups, window_size*2] -> [batch_size, input_length]
-        x = x.reshape(batch_size, self.input_length)
-
-        # Apply sigmoid
-        x = self.final_act(x)
-
-        return x
-
-    def encode(self, x):
-        """
-        Encode data to latent space
-
-        Args:
-            x: Input tensor of shape [batch_size, input_length]
-
-        Returns:
-            Latent representation of shape [batch_size, latent_dim]
-        """
-        batch_size = x.size(0)
-
         # Reshape to group by windows
         x = x.reshape(batch_size, self.n_groups, self.window_size * 2)
-
-        # Apply convolution
-        x = self.encoder_conv(x)
-        x = self.encoder_act(x)
-
-        # Flatten and map to latent space
+        # Apply convolutional block
+        x = self.encoder_conv_block(x)
+        # Flatten
         x = x.reshape(batch_size, self.n_groups)
-        x = self.encoder_fc(x)
-        return self.encoder_fc_act(x)
+        # Apply FC block to get latent representation
+        latent = self.encoder_fc_block(x)
+        return(latent)
 
-    def decode(self, z):
-        """
-        Decode from latent space
+#####################################################################################################################
 
-        Args:
-            z: Latent representation of shape [batch_size, latent_dim]
+class local_gg_decoder(nn.Module):
+    def __init__(self, input_length=input_length, loci_count=n_loci, window_size=window_step, latent_dim=glatent, window_stride=window_stride):
+        super().__init__()
 
-        Returns:
-            Reconstructed tensor of shape [batch_size, input_length]
-        """
+        self.input_length = input_length  # 200,000 values for 100,000 loci
+        self.loci_count = loci_count      # 100,000 loci
+        self.window_size = window_size    # 10 loci per group
+        self.latent_dim = latent_dim      # Latent space dimension
+        self.window_stride = window_stride #steps between LD windows
+
+        # Calculate the number of groups
+        self.n_groups = loci_count // window_size  # 10,000 groups
+
+        # Fully connected block for decoder
+        self.decoder_fc_block = nn.Sequential(
+            nn.Linear(latent_dim, self.n_groups),
+            nn.BatchNorm1d(self.n_groups, momentum=0.8),
+            nn.LeakyReLU(0.1)
+        )
+
+        # Locally connected block
+        self.decoder_conv_block = nn.Sequential(
+            nn.ConvTranspose1d(
+                in_channels=self.n_groups,
+                out_channels=self.n_groups,
+                kernel_size=window_size * 2,
+                stride=window_stride * 2,
+                groups=self.n_groups,
+                bias=True
+            ),
+            nn.LeakyReLU(0.1)
+        )
+        # Final sigmoid transform
+        self.decoder_final_act = nn.Sigmoid()
+
+
+    def forward(self, z):
         batch_size = z.size(0)
-
-        # Map from latent space to window representations
-        x = self.decoder_fc(z)
-        x =  self.decoder_fc_act(x)
-
-        # Reshape for transposed convolution
+        x = self.decoder_fc_block(z)
         x = x.reshape(batch_size, self.n_groups, 1)
 
-        # Expand each window back to original size
-        x = self.decoder_conv(x)
-
-        # Reshape to original format
+        x = self.decoder_conv_block(x)
         x = x.reshape(batch_size, self.input_length)
 
-        # Apply sigmoid
-        x = self.final_act(x)
-
+        x = self.decoder_final_act(x)
         return x
 
 #####################################################################################################################
 #####################################################################################################################
 
-def train_baseline_model(model, train_loader, test_loader=None, epochs=n_epochs,
-                         learning_rate=0.001, weight_decay=1e-5, device=device):
-    """
-    Train the baseline LD-aware autoencoder with no special weighting
 
-    Args:
-        model: The autoencoder model
-        train_loader: DataLoader with training data
-        test_loader: Optional DataLoader with test data
-        epochs: Number of training epochs
-        learning_rate: Learning rate for Adam optimizer
-        weight_decay: Weight decay for regularization
-        device: Device to train on ('cuda' or 'cpu')
+GQ = local_gg_encoder()
+GP = local_gg_decoder()
 
-    Returns:
-        Trained model and training history
-    """
-    # Move model to device
-    model = model.to(device)
+GQ.to(device)
+GP.to(device)
 
-    # Initialize optimizer with proper weight decay
-    optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+EPS = 1e-15
+#reg_lr = 0.001
+adam_b = (0.5, 0.999)
 
-    # Learning rate scheduler
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='min', factor=0.5, patience=3, verbose=True
-    )
+optim_GQ_enc = torch.optim.Adam(GQ.parameters(), lr=learning_rate, betas=adam_b)
+optim_GP_dec = torch.optim.Adam(GP.parameters(), lr=learning_rate, betas=adam_b)
 
-    # Track metrics
-    history = {
-        'train_loss': [],
-        'test_loss': [],
-        'epoch_time': []
-    }
-
-    # Training loop
-    for epoch in range(epochs):
-        # Training
-        model.train()
-        train_loss = 0
-
-        for batch_idx, data in enumerate(train_loader):
-            # Get data
-            if isinstance(data, (list, tuple)):
-                            # If it's a tuple or list, take the first element
-                            data = data[0]
-
-            # Print the actual batch shape for debugging
-            #print(f"Batch shape: {data.shape}")
+############################################################################################################
+############################################################################################################
 
 
+g_rcon_loss = []
+val_losses = []  # To store validation losses per epoch
+start_time = tm.time()
+validation_interval = 5
+best_val_loss = float('inf')
+best_epoch = 0
 
+gen_noise = 1 - genetic_noise
+
+print("start training")
+for n in range(n_epochs):
+    GQ.train()
+    GP.train()
+
+    for i, (gens) in enumerate(train_loader_geno):
+        batch_size = gens.shape[0]  # redefine batch size here to allow for incomplete batches
+
+        # reconstruction loss
+        GP.zero_grad()
+        GQ.zero_grad()
+
+        #gens = gens[:, : n_loci*n_alleles]
+
+        pos_noise = np.random.binomial(1, gen_noise / 2, gens.shape)
+        neg_noise = np.random.binomial(1, gen_noise / 2, gens.shape)
+        noise_gens = torch.tensor(
+            np.where((gens + pos_noise - neg_noise) > 0, 1, 0), dtype=torch.float32
+        )
+
+        noise_gens = noise_gens.to(device)
+        gens = gens.to(device)
+
+        z_sample = GQ(noise_gens)
+        X_sample = GP(z_sample)
+
+        g_recon_loss = F.binary_cross_entropy(X_sample + EPS, gens + EPS)
+
+        l1_reg = torch.linalg.norm(torch.sum(GQ.encoder_fc_block[0].weight, axis=0), 1)
+        l2_reg = torch.linalg.norm(torch.sum(GQ.encoder_fc_block[0].weight, axis=0), 2)
+        g_recon_loss = g_recon_loss + l1_reg * 0 + l2_reg * 0
+
+        g_rcon_loss.append(float(g_recon_loss.detach()))
+
+        g_recon_loss.backward()
+        optim_GQ_enc.step()
+        optim_GP_dec.step()
+
+    ###################################
+    #validation
+    GQ.eval()  # Set models to evaluation mode
+    GP.eval()
+
+    val_loss_epoch = 0
+    num_val_batches = 0
+
+    with torch.no_grad():  # No need to track gradients for validation
+        for i, (gens) in enumerate(test_loader_geno):  # Using test loader for validation
+            batch_size = gens.shape[0]
+
+            gens = gens.to(device)
 
             # Forward pass
-            optimizer.zero_grad()
-            output = model(data)
+            z_sample = GQ(gens)  # No noise during validation
+            X_sample = GP(z_sample)
 
-            # Standard BCE loss - NO WEIGHTING
-            loss = F.binary_cross_entropy(output, data)
+            # Calculate validation loss
+            val_loss = F.binary_cross_entropy(X_sample + EPS, gens + EPS)
 
-            # Backward and optimize
-            loss.backward()
-            optimizer.step()
+            val_loss_epoch += float(val_loss)
+            num_val_batches += 1
 
-            train_loss += loss.item()
+    # Calculate average validation loss
+    avg_val_loss = val_loss_epoch / num_val_batches
+    val_losses.append(avg_val_loss)
 
-            if (batch_idx + 1) % 10 == 0:
-                print(f'Epoch: {epoch+1}/{epochs}, Batch: {batch_idx+1}, Loss: {loss.item():.6f}')
+    # Check if this is the best model
+    if avg_val_loss < best_val_loss:
+        best_val_loss = avg_val_loss
+        best_epoch = n
 
-        avg_train_loss = train_loss / len(train_loader)
-        history['train_loss'].append(avg_train_loss)
-        print(f'Epoch: {epoch+1}/{epochs}, Training Loss: {avg_train_loss:.6f}')
+    cur_time = tm.time() - start_time
+    start_time = tm.time()
 
-        # Validation
-        if test_loader is not None:
-            model.eval()
-            test_loss = 0
+    print(
+        "Epoch num: "
+        + str(n)
+        + " , training loss "
+        + str(g_rcon_loss[-1])
+        + " , validation_loss: "
+        + str(avg_val_loss)
+        + " , best validation: "
+        + str(best_val_loss)
+        + " , best epoch: "
+        + str(best_epoch)
+        + " , epoch duration: "
+        + str(cur_time)
+    )
 
-            with torch.no_grad():
-                for data in test_loader:
-                    data = data[0].to(device)
-                    output = model(data)
-                    # Standard BCE loss for evaluation
-                    test_loss += F.binary_cross_entropy(output, data).item()
-
-            avg_test_loss = test_loss / len(test_loader)
-            history['test_loss'].append(avg_test_loss)
-            print(f'Epoch: {epoch+1}/{epochs}, Test Loss: {avg_test_loss:.6f}')
-
-            # Update learning rate
-            scheduler.step(avg_test_loss)
-
-    return model, history
-
-#####################################################################################################################
-#####################################################################################################################
-
-def evaluate_allele_reconstruction(model, test_loader, device=device):
-    """
-    Evaluate model performance specifically for allele reconstruction
-
-    Args:
-        model: Trained autoencoder model
-        test_loader: DataLoader with test data
-        device: Device to evaluate on
-
-    Returns:
-        Dictionary with various metrics
-    """
-    model.eval()
-
-    # Metrics to track
-    metrics = {
-        'overall_accuracy': 0,
-        'rare_allele_accuracy': 0,
-        'common_allele_accuracy': 0,
-        'rare_allele_recall': 0,
-        'total_samples': 0,
-        'rare_allele_count': 0,
-        'common_allele_count': 0
-    }
-
-    with torch.no_grad():
-        #for data in test_loader:
-        for batch_idx, data in enumerate(test_loader):
-            # Get data
-            if isinstance(data, (list, tuple)):
-                # If it's a tuple or list, take the first element
-                data = data[0]
-            output = model(data)
-
-            # Convert probabilities to binary predictions
-            predictions = (output > 0.5).float()
-
-            # Calculate metrics
-            correct = (predictions == data).float()
-
-            # Count rare and common alleles
-            rare_allele_mask = (data > 0.5)
-            common_allele_mask = (data <= 0.5)
-
-            metrics['total_samples'] += data.size(0) * data.size(1)
-            metrics['rare_allele_count'] += rare_allele_mask.sum().item()
-            metrics['common_allele_count'] += common_allele_mask.sum().item()
-
-            # Accuracy metrics
-            metrics['overall_accuracy'] += correct.sum().item()
-            metrics['rare_allele_accuracy'] += (correct * rare_allele_mask).sum().item()
-            metrics['common_allele_accuracy'] += (correct * common_allele_mask).sum().item()
-
-            # Recall for rare alleles (true positives / total positives)
-            true_positives = (predictions * data * rare_allele_mask).sum().item()
-            metrics['rare_allele_recall'] += true_positives
-
-    # Normalize metrics
-    metrics['overall_accuracy'] /= metrics['total_samples']
-    metrics['rare_allele_accuracy'] /= max(1, metrics['rare_allele_count'])
-    metrics['common_allele_accuracy'] /= max(1, metrics['common_allele_count'])
-    metrics['rare_allele_recall'] /= max(1, metrics['rare_allele_count'])
-
-    return metrics
-
-#####################################################################################################################
-#####################################################################################################################
-model = LDGroupedAutoencoder(
-    input_length=input_length,
-    loci_count=n_loci,
-    window_size=window_step,
-    latent_dim=glatent)
-
-model, history = train_baseline_model(model, train_loader_geno, device=device)
-metrics = evaluate_allele_reconstruction(model, test_loader_geno, device=device)
-
-import json; json.dump(metrics, open('local_autoencoder_metrics.json', 'w'), indent=4)
-
-torch.save(model.state_dict(), "localgg_TEST.pt")
+torch.save(GQ.state_dict(), "localgg/localgg_GQ_encoder_state_dict.pt")
+torch.save(GP.state_dict(), "localgg/localgg_GP_decoder_state_dict.pt")
