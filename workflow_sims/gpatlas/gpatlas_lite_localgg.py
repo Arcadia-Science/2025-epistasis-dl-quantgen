@@ -20,7 +20,7 @@ window_stride = 5
 glatent = 10000
 input_length = n_loci * n_alleles
 
-n_epochs = 15
+n_epochs = 85
 batch_size = 128
 num_workers = 9
 base_file_name = 'gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_'
