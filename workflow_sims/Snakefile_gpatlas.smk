@@ -10,8 +10,8 @@ def get_scenario_id(wildcards):
 rule all:
    input:
         expand("gpatlas/gpatlas_input/test_{sim_scenario}_{sample_size}n_{bp_len}bp_test.hdf5", sim_scenario = SIM_SCENARIO, bp_len=BP_LEN, sample_size = SAMPLE_SIZE),
-        expand("gpatlas/optuna/test_{sim_scenario}_{sample_size}n_{bp_len}bp_gg_encoder.pt", sim_scenario = SIM_SCENARIO, bp_len=BP_LEN, sample_size = SAMPLE_SIZE),
-        expand("gpatlas/optuna/test_{sim_scenario}_{sample_size}n_{bp_len}bp_gp_network.pt", sim_scenario = SIM_SCENARIO, bp_len=BP_LEN, sample_size = SAMPLE_SIZE)
+        #expand("gpatlas/optuna/test_{sim_scenario}_{sample_size}n_{bp_len}bp_gg_encoder.pt", sim_scenario = SIM_SCENARIO, bp_len=BP_LEN, sample_size = SAMPLE_SIZE),
+        #expand("gpatlas/optuna/test_{sim_scenario}_{sample_size}n_{bp_len}bp_gp_network.pt", sim_scenario = SIM_SCENARIO, bp_len=BP_LEN, sample_size = SAMPLE_SIZE)
 
 
 #create hdf5 files for input to gpatlas

@@ -3,7 +3,7 @@ import pickle as pk
 
 out_dict={}
 
-file_prefix = 'test_sim_WF_1kbt_10000n_5000000bp'
+file_prefix = 'test_sim_WF_10kbt_10000n_5000000bp'
 phen_file = open('alphasimr_output/' + file_prefix + '_p.txt' , 'r')
 
 phens = phen_file.read().split('\n')

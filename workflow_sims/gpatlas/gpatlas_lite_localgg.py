@@ -18,13 +18,13 @@ import numpy as np
 n_loci = 100000
 n_alleles = 2
 window_step = 10
-window_stride = 10
-glatent = 2000
+window_stride = 5
+glatent = 5000
 input_length = n_loci * n_alleles
 genetic_noise = 0.95
 learning_rate = 0.001
 
-n_epochs = 51
+n_epochs = 85
 batch_size = 128
 num_workers = 9
 base_file_name = 'gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_'

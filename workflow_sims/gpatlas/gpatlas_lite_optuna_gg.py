@@ -26,6 +26,7 @@ import traceback
 batch_size = 128
 num_workers = 10
 num_epochs_final = 30
+n_trials_optuna = 30
 ##########################################################################################
 ##########################################################################################
 
@@ -129,8 +130,8 @@ class GenoDataset(BaseDataset):
 ##########################################################################################
 ##########################################################################################
 
-train_data_geno = GenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_train.hdf5')
-test_data_geno = GenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_test.hdf5')
+train_data_geno = GenoDataset('gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_train.hdf5')
+test_data_geno = GenoDataset('gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_test.hdf5')
 
 ##########################################################################################
 ##########################################################################################
@@ -210,10 +211,10 @@ def objective(trial: optuna.Trial,
 
     # Hyperparameters to optimize
     latent_space_g = trial.suggest_int('latent_space_g', 3500, 3500)#('latent_space_g', 100, 3500)
-    gen_noise = trial.suggest_float('gen_noise', 0.61, 0.61)#('gen_noise', 0.1, 0.7)
-    learning_rate = trial.suggest_float('learning_rate', 3e-4, 3e-4, log=True)#('learning_rate', 1e-4, 1e-2, log=True)
-    num_epochs = trial.suggest_int('num_epochs', 1, 1)#('num_epochs', 1, 10)
-    weights_regularization = trial.suggest_float('weights_regularization', 1e-6, 1e-6, log=True)#('weights_regularization', 1e-6, 1e-1, log=True)
+    gen_noise = trial.suggest_float('gen_noise', 0.1, 0.9)#('gen_noise', 0.1, 0.7)
+    learning_rate = trial.suggest_float('learning_rate', 1e-6, 1e-3, log=True)#('learning_rate', 1e-4, 1e-2, log=True)
+    num_epochs = trial.suggest_int('num_epochs', 6, 6)#('num_epochs', 1, 10)
+    weights_regularization = trial.suggest_float('weights_regularization', 1e-6, 1e-3, log=True)#('weights_regularization', 1e-6, 1e-1, log=True)
 
     # Constants
     EPS = 1e-15
@@ -410,7 +411,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Run optimization
-    n_trials = 1
+    n_trials = n_trials_optuna
 
     try:
         # Create a list to store results as we go
