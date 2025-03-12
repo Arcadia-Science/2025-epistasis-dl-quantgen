@@ -25,8 +25,9 @@ import traceback
 
 batch_size = 128
 num_workers = 10
-num_epochs_final = 30
-n_trials_optuna = 30
+num_epochs_final = 16
+n_trials_optuna = 15
+
 ##########################################################################################
 ##########################################################################################
 
@@ -130,8 +131,8 @@ class GenoDataset(BaseDataset):
 ##########################################################################################
 ##########################################################################################
 
-train_data_geno = GenoDataset('gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_train.hdf5')
-test_data_geno = GenoDataset('gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_test.hdf5')
+train_data_geno = GenoDataset('gpatlas_input/test_sim_WF_null_10000n_5000000bp_train.hdf5')
+test_data_geno = GenoDataset('gpatlas_input/test_sim_WF_null_10000n_5000000bp_test.hdf5')
 
 ##########################################################################################
 ##########################################################################################

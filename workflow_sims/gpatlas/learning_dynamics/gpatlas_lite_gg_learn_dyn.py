@@ -29,14 +29,14 @@ num_workers = 10
 
 n_geno = 100000
 n_alleles = 2
-latent_space_g = 100
-num_epochs_gen = 1
+latent_space_g = 3500
+num_epochs_gen = 13
 genetic_noise = 0.60
 learning_rate = 0.00135
 
-csv_output_loss = 'learning_dynamics/test_output.csv'
-csv_output_dimensionality = 'learning_dynamics/test_output_dimensionality.csv'
-loci_to_track = 100  # You may want to track a subset if n_geno*n_alleles is large
+csv_output_loss = 'learning_dynamics/test_sim_WF_1kbt_13epoch_3500latentg_loss.csv'
+csv_output_dimensionality = 'learning_dynamics/test_sim_WF_1kbt_13epoch_3500latentg_dimensionality.csv'
+loci_to_track = 500  # You may want to track a subset if n_geno*n_alleles is large
 ############
 
 
