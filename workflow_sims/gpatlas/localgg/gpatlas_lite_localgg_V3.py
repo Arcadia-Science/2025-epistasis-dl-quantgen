@@ -22,13 +22,13 @@ glatent = 2000
 input_length = n_loci * n_alleles
 n_out_channels = 3
 
-n_epochs = 30
+n_epochs = 40
 batch_size = 128
 num_workers = 3
 base_file_name = 'gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-gamma_fc_loss = 0.5
+gamma_fc_loss = 1.5
 ##########################################################################################
 ##########################################################################################
 
@@ -285,8 +285,13 @@ def focal_loss_for_genetic_data(predictions, targets, gamma=gamma_fc_loss, alpha
 #####################################################################################################################
 
 start_time = tm.time()
-def train_baseline_model(model, train_loader, test_loader=None, epochs=n_epochs,
-                         learning_rate=0.001, weight_decay=1e-5, device=device):
+def train_baseline_model(model, train_loader, test_loader=None,
+                         epochs=n_epochs,
+                         learning_rate=0.001,
+                         weight_decay=1e-5,
+                         device=device,
+                         patience=6,
+                         min_delta=0.001):
     """
     Train the baseline LD-aware autoencoder with no special weighting
 
@@ -317,7 +322,14 @@ def train_baseline_model(model, train_loader, test_loader=None, epochs=n_epochs,
     history = {
         'train_loss': [],
         'test_loss': [],
+        'epochs_trained': 0
     }
+
+    # Early stopping variables
+    best_loss = float('inf')
+    best_epoch = 0
+    best_model_state = None
+    patience_counter = 0
 
     # Training loop
     for epoch in range(epochs):
@@ -378,7 +390,36 @@ def train_baseline_model(model, train_loader, test_loader=None, epochs=n_epochs,
             # Update learning rate
             scheduler.step(avg_test_loss)
 
-    return model, history
+            #early stoppage loop
+            # Check for improvement
+            if avg_test_loss < (best_loss - min_delta):
+                best_loss = avg_test_loss
+                best_epoch = epoch
+                patience_counter = 0
+                # Save best model state
+                best_model_state = {k: v.cpu().detach().clone() for k, v in model.state_dict().items()}
+                print(f"New best model at epoch {epoch+1} with test loss: {best_loss:.6f}")
+            else:
+                patience_counter += 1
+                print(f"No improvement for {patience_counter} epochs (best: {best_loss:.6f})")
+
+            # Early stopping check
+            if patience_counter >= patience:
+                print(f"Early stopping triggered after {epoch+1} epochs")
+                break
+
+    # Record how many epochs were actually used
+    history['epochs_trained'] = epoch + 1
+
+    # Restore best model
+    if best_model_state is not None:
+        print(f"Restoring best model from epoch {best_epoch+1}")
+        model.load_state_dict(best_model_state)
+
+    return model, best_loss, history
+
+
+    #return model, history
 
 #####################################################################################################################
 #####################################################################################################################
@@ -443,8 +484,9 @@ model = LDGroupedAutoencoder(
     latent_dim=glatent)
 
 #train and sacve full model
-model, history = train_baseline_model(model, train_loader_geno,test_loader=test_loader_geno, device=device)
+model, best_loss, history = train_baseline_model(model, train_loader_geno,test_loader=test_loader_geno, device=device)
 torch.save(model.state_dict(), "localgg/localgg_autenc_10kbt_V3_state_dict.pt")
+print(f'saved best model with loss: {best_loss}')
 
 #save gg encoder only for G->P
 encoder = LDEncoder(model)

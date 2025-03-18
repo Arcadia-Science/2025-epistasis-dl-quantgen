@@ -21,25 +21,43 @@ import traceback
 
 
 batch_size = 128
-num_workers = 10
+num_workers = 4
 
 ##########################################################################################
 ##########################################################################################
+#dataset params
 n_phen = 25
 n_geno = 100000
 n_alleles = 2
-latent_space_g = 3500
+latent_space_g = 2449
 
 n_loci = n_geno * n_alleles
 
+#genotype network params (from saved g encoder)
 g_params = {
     'input_length': 200000,  # n_loci * n_alleles
     'loci_count': 100000,
-    'window_size': 10,
-    'latent_space_g': 3500,
-    'n_out_channels': 2,
-    'window_stride': 5
+    'window_size': 100,
+    'latent_space_g': 2449,
+    'n_out_channels': 7,
+    'window_stride': 12
 }
+
+#phenotype networks params
+latent_space_p = 25
+latent_space_gp = 800
+
+learning_rate = 0.001
+phen_noise = 0
+gen_noise = 0.99
+num_epochs_pp = 75
+num_epochs_gp = 15
+weights_regularization = 0
+
+#early stoppage metrics
+patience=4
+min_delta=0.001
+
 ##########################################################################################
 ##########################################################################################
 
@@ -92,11 +110,11 @@ class GenoDataset(BaseDataset):
 
 ##########################################################################################
 ##########################################################################################
-train_data_gp = GenoPhenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_train.hdf5')
-test_data_gp = GenoPhenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_test.hdf5')
+train_data_gp = GenoPhenoDataset('gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_train.hdf5')
+test_data_gp = GenoPhenoDataset('gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_test.hdf5')
 
-train_data_pheno = PhenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_train.hdf5')
-test_data_pheno = PhenoDataset('gpatlas/test_sim_WF_1kbt_10000n_5000000bp_test.hdf5')
+train_data_pheno = PhenoDataset('gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_train.hdf5')
+test_data_pheno = PhenoDataset('gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_test.hdf5')
 
 ##########################################################################################
 ##########################################################################################
@@ -176,7 +194,7 @@ class P_net(nn.Module):
 ##########################################################################################
 
 class LDEncoder(nn.Module):
-    def __init__(self, input_length, loci_count, window_size, latent_dim, n_out_channels, window_stride=5):
+    def __init__(self, input_length, loci_count, window_size, latent_dim, n_out_channels, window_stride):
         """
         Standalone encoder with the same architecture as in LDGroupedAutoencoder
 
@@ -199,17 +217,18 @@ class LDEncoder(nn.Module):
 
         # Encoder layers
         self.encoder_conv = nn.Conv1d(
-            in_channels=self.n_groups,
-            out_channels=self.n_groups * n_out_channels,
-            kernel_size=window_size * 2,
-            stride=window_stride,
-            groups=self.n_groups,
+            in_channels=self.n_groups,           # One channel per window
+            out_channels=self.n_groups*n_out_channels,          # One output per window
+            kernel_size=window_size * 2,         # Cover entire window (2 alleles per locus)
+            stride=window_stride,              # Non-overlapping
+            groups=self.n_groups,                # Each window processed independently
             bias=True
         )
 
-        self.encoder_act = nn.LeakyReLU(0.2)
+        self.encoder_act = nn.LeakyReLU(0.1)
 
-        self.encoder_fc = nn.Linear(self.n_groups * n_out_channels, latent_dim)
+        # Fully connected layer to latent space
+        self.encoder_fc = nn.Linear(self.n_groups*n_out_channels, latent_dim)
         self.encoder_fc_act = nn.LeakyReLU(0.1)
 
     def forward(self, x):
@@ -245,7 +264,7 @@ def load_pretrained_encoder(encoder_path, params):
 
     return encoder
 
-GQ = load_pretrained_encoder("gpatlas/localgg/localgg_enc_1kbt_V1_state_dict.pt", g_params)
+GQ = load_pretrained_encoder("localgg/localgg_enc_1kbt_V1_state_dict.pt", g_params)
 
 GQ.to(device)
 GQ.requires_grad_(False)  # freeze weights
@@ -256,17 +275,16 @@ GQ.eval()
 #g to p feed forward network
 
 class GQ_to_P_net(nn.Module):
-    def __init__(self, N, latent_space_g ):
+    def __init__(self, N, latent_space_g, latent_space_gp ):
         super().__init__()
 
         batchnorm_momentum =0.8
         g_latent_dim = latent_space_g
-        latent_dim = N
         self.encoder = nn.Sequential(
-            nn.Linear(in_features=g_latent_dim, out_features=N),
-            nn.BatchNorm1d(N, momentum=batchnorm_momentum),
+            nn.Linear(in_features=g_latent_dim, out_features=latent_space_gp),
+            nn.BatchNorm1d(latent_space_gp, momentum=batchnorm_momentum),
             nn.LeakyReLU(0.01),
-            nn.Linear(in_features=N, out_features=latent_dim),
+            nn.Linear(in_features=latent_space_gp, out_features=N),
             nn.BatchNorm1d(N, momentum=batchnorm_momentum),
             nn.LeakyReLU(0.01),
         )
@@ -281,13 +299,7 @@ class GQ_to_P_net(nn.Module):
 
 
 #Hyperparameters fixed
-latent_space_p = 800
-learning_rate = 0.00079
-phen_noise = 0.003
-gen_noise = 0.99
-num_epochs_pp = 10
-num_epochs_gp = 1
-weights_regularization = 0
+
 
 # Constants
 EPS = 1e-15
@@ -337,21 +349,61 @@ for epoch in range(num_epochs_pp):
         optim_P_dec.step()
 
         epoch_losses.append(float(recon_loss.detach()))
-        #print(f"Epoch {epoch}, train Loss pp: {recon_loss:.4f}")
+
+
+####check pp prediction
+Q.eval()
+P.eval()
+
+# Collect true and predicted phenotypes
+true_phenos = []
+pred_phenos = []
+
+with torch.no_grad():
+    for phens in test_loader_pheno:  # or train_loader_pheno, depending on which you want to use
+        phens = phens.to(device)
+
+        z_sample = Q(phens)
+        X_sample = P(z_sample)
+
+        # Convert to numpy for R-squared calculation
+        true_phenos.extend(phens[:, :n_phen].cpu().numpy())
+        pred_phenos.extend(X_sample.cpu().numpy())
+
+# Calculate R-squared
+true_phenos = np.array(true_phenos)
+pred_phenos = np.array(pred_phenos)
+
+# Calculate R-squared for each phenotype
+r_squared_values = []
+for i in range(n_phen):
+    r_sq = r2_score(true_phenos[:, i], pred_phenos[:, i])
+    r_squared_values.append(r_sq)
+
+# Print R-squared values
+print("R-squared values for each phenotype:")
+for i, r_sq in enumerate(r_squared_values):
+    print(f"Phenotype {i+1}: {r_sq:.4f}")
 ##########################################################################################
 
 
-
-
-
-#load optimizer gencoderm shouldn't be needed since frozen
-#optim_GQ_enc = torch.optim.Adam(GQ.parameters(), lr=learning_rate, betas=adam_b)
-
-GQP = GQ_to_P_net(N=latent_space_p, latent_space_g=latent_space_g).to(device)
+GQP = GQ_to_P_net(N=latent_space_p, latent_space_g=latent_space_g, latent_space_gp=latent_space_gp).to(device)
 optim_GQP_dec = torch.optim.Adam(GQP.parameters(), lr=learning_rate, betas=adam_b)
 
 #Training loop GP network
 P.eval() #set pheno decoder to eval only
+
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+    optim_GQP_dec, mode='min', factor=0.5, patience=3, verbose=True
+)
+
+history = {'epochs_trained': 0}
+
+# Early stopping variables
+best_loss = float('inf')
+best_epoch = 0
+best_model_state = None
+patience_counter = 0
 
 for epoch_gp in range(num_epochs_gp):
     GQP.train()
@@ -367,6 +419,7 @@ for epoch_gp in range(num_epochs_gp):
             np.where((gens + pos_noise - neg_noise) > 0, 1, 0), dtype=torch.float32
         )
 
+        noise_gens = gens
         noise_gens = noise_gens.to(device)
 
         batch_size = phens.shape[0]
@@ -389,6 +442,7 @@ for epoch_gp in range(num_epochs_gp):
         #optim_GQ_enc.step()
         optim_GQP_dec.step()
 
+
 # Test set evaluation GP
     if epoch_gp % 1 == 0:
         GQ.eval()
@@ -409,11 +463,36 @@ for epoch_gp in range(num_epochs_gp):
                 test_losses_gp.append(float(test_loss))
 
         avg_test_loss_gp = np.mean(test_losses_gp)
-        print(f"Epoch {epoch_gp}, Test Loss gp: {avg_test_loss_gp:.4f}")
+        print(f"Epoch {epoch_gp+1} test loss: {avg_test_loss_gp}")
+        scheduler.step(avg_test_loss_gp)
+
+        #early stoppage loop
+        # Check for improvement
+        if avg_test_loss_gp < (best_loss - min_delta):
+            best_loss = avg_test_loss_gp
+            best_epoch = epoch
+            patience_counter = 0
+            # Save best model state
+            best_model_state = {k: v.cpu().detach().clone() for k, v in GQP.state_dict().items()}
+            print(f"New best gp model at epoch {epoch_gp+1} with test loss: {best_loss:.6f}")
+        else:
+            patience_counter += 1
+            print(f"No improvement for {patience_counter} epochs (best: {best_loss:.6f})")
+
+        # Early stopping check
+        if patience_counter >= patience:
+            print(f"Early stopping triggered after {epoch_gp+1} epochs")
+            break
+
+#reload best model after training done
+if best_model_state is not None:
+    print(f"Restoring best model from epoch {best_epoch+1}")
+    GQP.load_state_dict(best_model_state)
 
 
-torch.save(P.state_dict(), "gpatlas/localgg/localgg_P_1kbt_V1_state_dict.pt")
-torch.save(GQP.state_dict(), "gpatlas/localgg/localgg_GQP_1kbt_V1_state_dict.pt")
+
+torch.save(P.state_dict(), "localgg/localgg_P_1kbt_V1_state_dict.pt")
+torch.save(GQP.state_dict(), "localgg/localgg_GQP_1kbt_V1_state_dict.pt")
 
 
 ##########################################################################################

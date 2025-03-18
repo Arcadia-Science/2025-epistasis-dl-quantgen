@@ -21,24 +21,24 @@ import traceback
 
 
 batch_size = 128
-num_workers = 10
+num_workers = 4
 
 ##########################################################################################
 ##########################################################################################
 n_phen = 25
 n_geno = 100000
 n_alleles = 2
-latent_space_g = 2000
+latent_space_g = 2449
 
 n_loci = n_geno * n_alleles
 
 g_params = {
     'input_length': 200000,  # n_loci * n_alleles
     'loci_count': 100000,
-    'window_size': 10,
-    'latent_space_g': 2000,
-    'n_out_channels': 5,
-    'window_stride': 3
+    'window_size': 100,
+    'latent_space_g': 2449,
+    'n_out_channels': 7,
+    'window_stride': 12
 }
 
 
