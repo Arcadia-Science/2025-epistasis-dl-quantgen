@@ -413,14 +413,6 @@ class LDEncoder(nn.Module):
 #####################################################################################################################
 #####################################################################################################################
 
-#train and save full model
-#model, history = train_baseline_model(model, train_loader_geno,test_loader=test_loader_geno, device=device)
-#torch.save(model.state_dict(), "localgg/localgg_autenc_10kbt_V1_state_dict.pt")
-
-#save gg encoder only for G->P
-#encoder = LDEncoder(model)
-#torch.save(encoder.state_dict(), "localgg/localgg_enc_10kbt_V1_state_dict.pt")
-
 
 def objective(trial: optuna.Trial,
              n_geno: int,

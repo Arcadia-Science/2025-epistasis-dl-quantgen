@@ -16,16 +16,16 @@ import time as tm
 
 n_loci = 100000
 n_alleles = 2
-window_step = 20
-window_stride = 4
-glatent = 3413
+window_step = 200
+window_stride = 10
+glatent = 3000
 input_length = n_loci * n_alleles
-n_out_channels = 4
+n_out_channels = 7
 
 n_epochs = 50
 batch_size = 128
 num_workers = 3
-base_file_name = 'gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_'
+base_file_name = 'gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ##########################################################################################
@@ -439,9 +439,9 @@ model = LDGroupedAutoencoder(
 
 #train and sacve full model
 model, best_loss, history = train_baseline_model(model, train_loader_geno,test_loader=test_loader_geno, device=device)
-torch.save(model.state_dict(), "localgg/localgg_autenc_10kbt_V1_state_dict.pt")
+torch.save(model.state_dict(), "localgg/localgg_autenc_1kbt_V1_state_dict.pt")
 print(f'saved best model with loss: {best_loss}')
 
 #save gg encoder only for G->P
 encoder = LDEncoder(model)
-torch.save(encoder.state_dict(), "localgg/localgg_enc_10kbt_V1_state_dict.pt")
+torch.save(encoder.state_dict(), "localgg/localgg_enc_1kbt_V1_state_dict.pt")

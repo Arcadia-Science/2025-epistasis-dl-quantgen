@@ -8,7 +8,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import r2_score
 from torch.utils.data.dataset import Dataset
 import optuna
 from pathlib import Path
