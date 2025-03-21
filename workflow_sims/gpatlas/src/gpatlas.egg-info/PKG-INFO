@@ -1,0 +1,22 @@
+Metadata-Version: 2.2
+Name: gpatlas
+Version: 0.1.0
+Summary: gpatlas modified for simulated data pipeline
+Author-email: George Sandler <your.email@example.com>
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: torch>=2.5.1
+Requires-Dist: numpy>=1.26.4
+Requires-Dist: pandas>=2.2.2
+Requires-Dist: scikit-learn>=1.5.1
+Requires-Dist: h5py>=3.12.1
+Requires-Dist: optuna>=3.5.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: black>=22.0.0; extra == "dev"
+Requires-Dist: flake8>=4.0.0; extra == "dev"
