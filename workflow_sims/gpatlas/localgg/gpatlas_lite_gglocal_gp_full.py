@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import gpatlas
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,6 +9,9 @@ from torch.utils.data import DataLoader, TensorDataset
 from torch.utils.data.dataset import Dataset
 import numpy as np
 from sklearn.metrics import r2_score
+import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
+import seaborn as sns
 
 import pandas as pd
 from pathlib import Path
@@ -15,12 +19,10 @@ from typing import cast
 import h5py
 import time as tm
 from datetime import datetime
-import optuna
-import json
+
 
 
 #variables
-n_trials_optuna = 75
 n_phen=25
 
 n_loci = 100000
@@ -33,7 +35,10 @@ n_out_channels = 7
 
 batch_size = 128
 num_workers = 3
-base_file_name = 'gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_'
+base_file_name = 'gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_'
+base_file_name_out = 'localgg/test_sim_WF_10kbt_gamma0_GQtrain_addonly_corrs'
+
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 EPS = 1e-15
@@ -41,318 +46,21 @@ EPS = 1e-15
 ##########################################################################################
 ##########################################################################################
 
-class BaseDataset(Dataset):
-    def __init__(self, hdf5_path: Path) -> None:
-        self.h5 = h5py.File(hdf5_path, "r")
-
-        self._strain_group = cast(h5py.Group, self.h5["strains"])
-        self.strains: list[str] = list(self._strain_group.keys())
-
-    def __len__(self) -> int:
-        return len(self._strain_group)
-
-###########
-class GenoPhenoDataset(BaseDataset):
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
-        strain = self.strains[idx]
-
-        strain_data = cast(Dataset, self._strain_group[strain])
-
-        # Note: genotype is being cast as float32 here, reasons not well understood.
-        phens = torch.tensor(strain_data["phenotype"][:], dtype=torch.float32)
-        gens = torch.tensor(strain_data["genotype"][:], dtype=torch.float32).flatten()
-
-        return phens, gens
-
-class PhenoDataset(BaseDataset):
-    def __getitem__(self, idx: int):
-        strain = self.strains[idx]
-
-        strain_data = cast(Dataset, self._strain_group[strain])
-
-        # Note: genotype is being cast as float32 here, reasons not well understood.
-        phens = torch.tensor(strain_data["phenotype"][:], dtype=torch.float32)
+loaders = gpatlas.create_data_loaders(base_file_name, batch_size=128, num_workers=3, shuffle=True)
 
 
-        return phens
+train_loader_geno = loaders['train_loader_geno']
+test_loader_geno = loaders['test_loader_geno']
 
-class GenoDataset(BaseDataset):
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
-        strain = self.strains[idx]
+train_loader_pheno = loaders['train_loader_pheno']
+test_loader_pheno = loaders['test_loader_pheno']
 
-        strain_data = cast(Dataset, self._strain_group[strain])
-
-        # Note: genotype is being cast as float32 here, reasons not well understood.
-        gens = torch.tensor(strain_data["genotype"][:], dtype=torch.float32).flatten()
-
-        return  gens
-
-
-##########################################################################################
-##########################################################################################
-
-train_data_geno = GenoDataset(f''+base_file_name+'train.hdf5')
-test_data_geno = GenoDataset(f''+base_file_name+'test.hdf5')
-
-train_data_gp = GenoPhenoDataset(f''+base_file_name+'train.hdf5')
-test_data_gp = GenoPhenoDataset(f''+base_file_name+'test.hdf5')
-
-train_data_pheno = PhenoDataset(f''+base_file_name+'train.hdf5')
-test_data_pheno = PhenoDataset(f''+base_file_name+'test.hdf5')
-
-##########################################################################################
-##########################################################################################
-
-train_loader_geno = torch.utils.data.DataLoader(
-    dataset=train_data_geno, batch_size=batch_size, num_workers=num_workers, shuffle=True, pin_memory=False, drop_last=False
-)
-test_loader_geno = torch.utils.data.DataLoader(
-    dataset=test_data_geno, batch_size=batch_size, num_workers=num_workers, shuffle=True
-)
-
-
-train_loader_pheno = torch.utils.data.DataLoader(
-    dataset=train_data_pheno, batch_size=batch_size, num_workers=num_workers, shuffle=True
-)
-test_loader_pheno = torch.utils.data.DataLoader(
-    dataset=test_data_pheno, batch_size=batch_size, num_workers=num_workers, shuffle=True
-)
-
-
-train_loader_gp = torch.utils.data.DataLoader(
-    dataset=train_data_gp, batch_size=batch_size, num_workers=num_workers, shuffle=True
-)
-test_loader_gp = torch.utils.data.DataLoader(
-    dataset=test_data_gp, batch_size=batch_size, num_workers=num_workers, shuffle=True
-)
-#####################################################################################################################
-#####################################################################################################################
-
-class LDGroupedAutoencoder(nn.Module):
-    def __init__(self, input_length, loci_count, window_size, window_stride, n_out_channels, latent_dim):
-        """
-        LD-aware autoencoder for genetic data using grouped convolution.
-        Each window of loci is processed independently.
-
-        Args:
-            input_length: Total length of input tensor (one-hot encoded, so 2 values per locus)
-            loci_count: Actual number of genetic loci (half of input_length)
-            window_size: Number of loci to group together in local connections
-            latent_dim: Dimension of the latent space
-        """
-        super().__init__()
-
-        self.input_length = input_length  # 200,000 values for 100,000 loci
-        self.loci_count = loci_count      # 100,000 loci
-        self.window_size = window_size    # 10 loci per group
-        self.latent_dim = latent_dim      # Latent space dimension
-        self.n_out_channels = n_out_channels  # number of output channels per LD window
-
-        # Calculate the number of groups
-        self.n_groups = loci_count // window_size  # 10,000 groups
-
-        # Encoder layers
-        self.encoder_conv = nn.Conv1d(
-            in_channels=self.n_groups,           # One channel per window
-            out_channels=self.n_groups*n_out_channels,          # One output per window
-            kernel_size=window_size * 2,         # Cover entire window (2 alleles per locus)
-            stride=window_stride,              # Non-overlapping
-            groups=self.n_groups,                # Each window processed independently
-            bias=True
-        )
-
-        self.encoder_act = nn.LeakyReLU(0.1)
-
-        # Fully connected layer to latent space
-        self.encoder_fc = nn.Linear(self.n_groups*n_out_channels, latent_dim)
-        self.encoder_fc_act = nn.LeakyReLU(0.1)
-
-        # Decoder - mirror of encoder
-        self.decoder_fc = nn.Linear(latent_dim, self.n_groups*n_out_channels)
-        self.decoder_fc_act = nn.LeakyReLU(0.1)
-
-        # Expand each window back to original size
-        self.decoder_conv = nn.ConvTranspose1d(
-            in_channels=self.n_out_channels * self.n_groups,
-            out_channels=self.n_groups,
-            kernel_size=window_size * 2,
-            stride=window_stride,
-            groups=self.n_groups,
-            bias=True
-        )
-
-        #self.decoder_conv_act = nn.LeakyReLU(0.1)
-        self.final_act = nn.Sigmoid()
-
-    def forward(self, x):
-        """
-        Forward pass through the autoencoder
-
-        Args:
-            x: Input tensor of shape [batch_size, input_length]
-
-        Returns:
-            Reconstructed tensor of shape [batch_size, input_length]
-        """
-        batch_size = x.size(0)
-        x = x.reshape(batch_size, self.n_groups, self.window_size * 2)
-
-        x = self.encoder_conv(x)
-        x = self.encoder_act(x)
-
-        x = x.reshape(batch_size, self.n_groups * self.n_out_channels)
-        latent = self.encoder_fc(x)
-        latent = self.encoder_fc_act(latent)
-
-        # Decode from latent space
-        x = self.decoder_fc(latent)
-        x = self.decoder_fc_act(x)
-
-        x = x.reshape(batch_size, self.n_groups * self.n_out_channels, 1)
-
-        x = self.decoder_conv(x)
-        x = x.reshape(batch_size, self.input_length)
-
-        # Apply sigmoid
-        x = self.final_act(x)
-
-        return x
-
-    def encode(self, x):
-        """
-        Encode data to latent space
-
-        Args:
-            x: Input tensor of shape [batch_size, input_length]
-
-        Returns:
-            Latent representation of shape [batch_size, latent_dim]
-        """
-        batch_size = x.size(0)
-
-        # Reshape to group by windows
-        x = x.reshape(batch_size, self.n_groups, self.window_size * 2)
-
-        # Apply convolution
-        x = self.encoder_conv(x)
-        x = self.encoder_act(x)
-
-        # Flatten and map to latent space
-        x = x.reshape(batch_size, self.n_groups * self.n_out_channels)
-        x = self.encoder_fc(x)
-        return self.encoder_fc_act(x)
-
-    def decode(self, z):
-        """
-        Decode from latent space
-
-        Args:
-            z: Latent representation of shape [batch_size, latent_dim]
-
-        Returns:
-            Reconstructed tensor of shape [batch_size, input_length]
-        """
-        batch_size = z.size(0)
-
-        # Map from latent space to window representations
-        x = self.decoder_fc(z)
-        x =  self.decoder_fc_act(x)
-
-        # Reshape for transposed convolution
-        x = x.reshape(batch_size, self.n_groups * self.n_out_channels, 1)
-
-        # Expand each window back to original size
-        x = self.decoder_conv(x)
-        #x = self.decoder_conv_act(x)
-
-        # Reshape to original format
-        x = x.reshape(batch_size, self.input_length)
-
-        # Apply sigmoid
-        x = self.final_act(x)
-
-        return x
+train_loader_gp = loaders['train_loader_gp']
+test_loader_gp = loaders['test_loader_gp']
 
 #####################################################################################################################
 #####################################################################################################################
-# phenotypes AEs
 
-# encoder
-class Q_net(nn.Module):
-    def __init__(self, phen_dim=None, N=None):
-        super().__init__()
-        #if N is None:
-        #    N = p_latent_space
-        if phen_dim is None:
-            phen_dim = n_phen
-
-        batchnorm_momentum = 0.8
-        latent_dim = N
-        self.encoder = nn.Sequential(
-            nn.Linear(in_features=phen_dim, out_features=N),
-            nn.BatchNorm1d(N, momentum=batchnorm_momentum),
-            nn.LeakyReLU(0.01, inplace=True),
-            nn.Linear(in_features=N, out_features=latent_dim),
-            nn.BatchNorm1d(latent_dim, momentum=batchnorm_momentum),
-            nn.LeakyReLU(0.01, inplace=True),
-        )
-
-    def forward(self, x):
-        x = self.encoder(x)
-        return x
-
-
-# decoder
-class P_net(nn.Module):
-    def __init__(self, phen_dim=None, N=None):
-        #if N is None:
-        #    N = p_latent_space
-        if phen_dim is None:
-            phen_dim = n_phen
-
-        out_phen_dim = n_phen
-        #vabs.n_locs * vabs.n_alleles
-        latent_dim = N
-
-        batchnorm_momentum = 0.8
-
-        super().__init__()
-        self.decoder = nn.Sequential(
-            nn.Linear(in_features=latent_dim, out_features=N),
-            nn.BatchNorm1d(N, momentum=batchnorm_momentum),
-            nn.LeakyReLU(0.01),
-            nn.Linear(in_features=N, out_features=out_phen_dim),
-        )
-
-    def forward(self, x):
-        x = self.decoder(x)
-        return x
-
-##########################################################################################
-##########################################################################################
-#g to p feed forward network
-
-class GQ_to_P_net(nn.Module):
-    def __init__(self, N, latent_space_g, latent_space_gp ):
-        super().__init__()
-
-        batchnorm_momentum =0.8
-        g_latent_dim = latent_space_g
-        self.encoder = nn.Sequential(
-            nn.Linear(in_features=g_latent_dim, out_features=latent_space_gp),
-            nn.BatchNorm1d(latent_space_gp, momentum=batchnorm_momentum),
-            nn.LeakyReLU(0.01),
-            nn.Linear(in_features=latent_space_gp, out_features=N),
-            nn.BatchNorm1d(N, momentum=batchnorm_momentum),
-            nn.LeakyReLU(0.01),
-        )
-
-    def forward(self, x):
-        x = self.encoder(x)
-        return x
-
-#####################################################################################################################
-#####################################################################################################################
 
 def focal_loss_for_genetic_data(predictions, targets, gamma, alpha=None):
     """
@@ -413,7 +121,7 @@ def train_localgg_model(model, train_loader, test_loader=None,
 
     # Learning rate scheduler
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='min', factor=0.5, patience=3, verbose=True
+        optimizer, mode='min', factor=0.5, patience=3
     )
 
     # Track metrics
@@ -611,22 +319,34 @@ def train_gp_model(GQP, train_loader, test_loader=None,
                          GQ=None,
                          P=None,
                          weights_regularization=0,
-                         patience=6,      # Number of epochs to wait for improvement
-                         min_delta=0.005, # Minimum change to count as improvement
-                         learning_rate=0.0001, device=device):
+                         train_gq = False,
+                         phen_indices=None,
+                         patience=2,      # Number of epochs to wait for improvement
+                         min_delta=0.003, # Minimum change to count as improvement
+                         learning_rate=0.00001, device=device):
     """
-    Train phenotype autoencoder
+    Train gp network
     """
     adam_b = (0.5, 0.999)
 
     GQP = GQP.to(device)
-    optim_GQP_dec = torch.optim.Adam(GQP.parameters(), lr=learning_rate, betas=adam_b)
+
+    #decide if genotype autoencoder will also be trained or not (default no)
+    if train_gq == True:
+        print("Training both GQP and GQ encoder together")
+        GQ.train()
+        optim_GQP_dec = torch.optim.Adam(
+        list(GQP.parameters()) + list(GQ.parameters()), lr=learning_rate, betas=adam_b)
+    else:
+        print("Training only GQP with GQ encoder frozen")
+        GQ.eval()
+        optim_GQP_dec = torch.optim.Adam(GQP.parameters(), lr=learning_rate, betas=adam_b)
 
     #Training loop GP network
     P.eval() #set pheno decoder to eval only
 
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optim_GQP_dec, mode='min', factor=0.5, patience=3, verbose=True
+        optim_GQP_dec, mode='min', factor=0.5, patience=3
     )
 
     history = {'epochs_trained': 0}
@@ -636,6 +356,23 @@ def train_gp_model(GQP, train_loader, test_loader=None,
     best_epoch = 0
     best_model_state = None
     patience_counter = 0
+
+   # Create mask for phenotype selection
+    if phen_indices is None:
+        # If no specific indices provided, use all phenotypes
+        phen_mask = torch.ones(n_phen, dtype=torch.bool)
+    else:
+        # Create a mask with 1s only at the specified indices
+        phen_mask = torch.zeros(n_phen, dtype=torch.bool)
+        for idx in phen_indices:
+            if 0 <= idx < n_phen:  # Ensure index is valid
+                phen_mask[idx] = True
+
+    # Make sure we have at least one phenotype selected
+    if not torch.any(phen_mask):
+        raise ValueError("No valid phenotype indices selected for training")
+
+    phen_mask = phen_mask.to(device)
 
     for epoch_gp in range(num_epochs_gp):
         GQP.train()
@@ -662,8 +399,10 @@ def train_gp_model(GQP, train_loader, test_loader=None,
             z_sample = GQP(z_sample)
             X_sample = P(z_sample)
 
+            X_selected = X_sample[:, phen_mask]
+            phens_selected = phens[:, phen_mask]
 
-            g_p_recon_loss = F.l1_loss(X_sample + EPS, phens[:, :n_phen] + EPS)
+            g_p_recon_loss = F.l1_loss(X_selected + EPS, phens_selected + EPS)
 
             l1_reg = torch.linalg.norm(torch.sum(GQP.encoder[0].weight, axis=0), 1)
             l2_reg = torch.linalg.norm(torch.sum(GQP.encoder[0].weight, axis=0), 2)
@@ -689,7 +428,10 @@ def train_gp_model(GQP, train_loader, test_loader=None,
                     z_sample = GQP(z_sample)
                     X_sample = P(z_sample)
 
-                    test_loss = F.l1_loss(X_sample + EPS, phens[:, :n_phen] + EPS)
+                    X_selected = X_sample[:, phen_mask]
+                    phens_selected = phens[:, phen_mask]
+
+                    test_loss = F.l1_loss(X_selected + EPS, phens_selected + EPS)
                     test_losses_gp.append(float(test_loss))
 
             avg_test_loss_gp = np.mean(test_losses_gp)
@@ -732,20 +474,16 @@ def train_gp_model(GQP, train_loader, test_loader=None,
 #####################################################################################################################
 
 
-def objective(trial: optuna.Trial,
-             n_loci: int,
-             n_alleles: int,
-             device: torch.device) -> float:
+def run_full_pipeline():
     """
     Objective function for Optuna that uses early stopping
     """
-
     ##################
     # geno autoencoder
-    glatent = trial.suggest_int('glatent', 500, 3500)
-    gamma_fc_loss = trial.suggest_float('gamma_fc_loss', 0, 3)
+    glatent = 3500
+    gamma_fc_loss = 0
 
-    GQ = LDGroupedAutoencoder(
+    GQ = gpatlas.LDGroupedAutoencoder(
         input_length=input_length,
         loci_count=n_loci,
         window_size=200,
@@ -760,17 +498,17 @@ def objective(trial: optuna.Trial,
         test_loader=test_loader_geno,
         gamma_fc_loss=gamma_fc_loss,
         max_epochs=50,          # Set a generous maximum
-        patience=6,             # Wait 7 epochs without improvement
+        patience=7,             # Wait 7 epochs without improvement
         min_delta=0.001,       # Minimum improvement threshold
         device=device
     )
 
     ##################
     #pheno autoencdoer
-    latent_space_p = trial.suggest_int('latent_space_p', 100, 3000)
+    latent_space_p = 2500
 
-    Q = Q_net(phen_dim=n_phen, N = latent_space_p).to(device)
-    P = P_net(phen_dim=n_phen, N = latent_space_p).to(device)
+    Q = gpatlas.Q_net(phen_dim=n_phen, N = latent_space_p).to(device)
+    P = gpatlas.P_net(phen_dim=n_phen, N = latent_space_p).to(device)
 
     Q, P = train_pp_model(Q, P,
                           train_loader=train_loader_pheno,
@@ -780,29 +518,108 @@ def objective(trial: optuna.Trial,
 
     ##################
     #gp network
-    latent_space_gp = trial.suggest_int('latent_space_gp', 100, 3000)
+    latent_space_gp = 2500
 
-    GQ.eval()
-    P.eval()
-
-    GQP = GQ_to_P_net(N=latent_space_p, latent_space_g=glatent, latent_space_gp=latent_space_gp).to(device)
+    GQP = gpatlas.GQ_to_P_net(N=latent_space_p, latent_space_g=glatent, latent_space_gp=latent_space_gp).to(device)
 
     best_loss_gp, GQP = train_gp_model(GQP,
                          P=P,
                          GQ=GQ,
                          train_loader=train_loader_gp,
                          test_loader=test_loader_gp,
+                         train_gq=True,
+                         phen_indices=[0,1,2,3,4],
                          n_loci=n_loci,
                          n_alleles=n_alleles,
                          gen_noise=0.99,
                          weights_regularization=0.000000001)
 
-    # Log useful information for this trial
-    trial.set_user_attr('epochs_trained', history['epochs_trained'])
-    trial.set_user_attr('training_history', {
-        'train_loss': history['train_loss'],
-        'test_loss': history['test_loss']
+
+
+    ####plot results pf GP prediction
+    GQP.eval()
+
+    # Collect predictions and true values
+    true_phenotypes = []
+    predicted_phenotypes = []
+
+    with torch.no_grad():
+        for phens, gens in test_loader_gp:
+            phens = phens.to(device)
+            gens = gens.to(device)
+
+            # Get predictions
+            z_sample = GQ.encode(gens)
+            z_sample = GQP(z_sample)
+            predictions = P(z_sample)
+
+            # Store results
+            true_phenotypes.append(phens.cpu().numpy())
+            predicted_phenotypes.append(predictions.cpu().numpy())
+
+    # Concatenate batches
+    true_phenotypes = np.concatenate(true_phenotypes)
+    predicted_phenotypes = np.concatenate(predicted_phenotypes)
+
+    # Calculate correlations for each phenotype
+    correlations = []
+    p_values = []
+    for i in range(n_phen):
+        corr, p_val = pearsonr(true_phenotypes[:, i], predicted_phenotypes[:, i])
+        correlations.append(corr)
+        p_values.append(p_val)
+
+    # Create data for the boxplot
+    boxplot_data = []
+    for i in range(0, n_phen, 5):
+        end_idx = min(i+5, n_phen)
+        group_name = f"{i+1}-{end_idx}"
+        for j in range(i, end_idx):
+            boxplot_data.append({
+                'trait_architecture': group_name,
+                'pearson_corr': correlations[j],
+                'trait_number': j+1
+            })
+
+    # Convert to DataFrame
+    corr_df = pd.DataFrame(boxplot_data)
+
+    # Create the boxplot with Seaborn
+    plt.figure(figsize=(4, 3.5))
+
+    sns.boxplot(x="trait_architecture", y="pearson_corr", data=corr_df)
+
+
+    # Customize the plot
+    plt.ylabel('Pearson Correlation (r)')
+    plt.xlabel('Trait trait_architecture')
+    plt.ylim(0, 1)
+    plt.axhline(y=0.7, color='red', linestyle='--')
+
+
+    plt.tight_layout()
+    plt.savefig(f'{base_file_name_out}_pheno_corr.png')
+
+    # Create a detailed DataFrame with all results
+    results_df = pd.DataFrame({
+        'trait_number': range(1, n_phen + 1),
+        'pearson_correlation': correlations,
+        'p_value': p_values,
+        'true_mean': [np.mean(true_phenotypes[:, i]) for i in range(n_phen)],
+        'pred_mean': [np.mean(predicted_phenotypes[:, i]) for i in range(n_phen)],
+        'true_std': [np.std(true_phenotypes[:, i]) for i in range(n_phen)],
+        'pred_std': [np.std(predicted_phenotypes[:, i]) for i in range(n_phen)]
     })
+
+    # Add trait architecture group
+    results_df['trait_architecture'] = results_df['trait_number'].apply(
+        lambda x: f"{((x-1)//5)*5+1}-{min(((x-1)//5+1)*5, n_phen)}"
+    )
+
+    # Save to CSV
+    results_df.to_csv(f'{base_file_name_out}_pheno_corr.csv', index=False)
+
+
 
     return best_loss_gp
 
@@ -811,65 +628,8 @@ def objective(trial: optuna.Trial,
 #####################################################################################################################
 
 def main():
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-    # Create output directory
-    output_dir = Path('localgg/optuna')
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # Create study
-    study = optuna.create_study(direction='minimize')
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    # Run optimization
-    n_trials = n_trials_optuna
-
-    try:
-        # Create a list to store results as we go
-        trial_results = []
-
-        study.optimize(
-            lambda trial: objective(
-                trial=trial,
-                n_loci=n_loci,
-                n_alleles=n_alleles,
-                device=device
-            ),
-            n_trials=n_trials,
-            callbacks=[
-                lambda study, trial: trial_results.append({
-                    'trial_number': trial.number,
-                    'params': trial.params,
-                    'value': trial.value,
-                    'state': trial.state.name
-                })
-            ]
-        )
-
-    finally:
-        print("\nStudy completed!")
-        print(f"Best parameters found: {study.best_params}")
-        print(f"Best value achieved: {study.best_value}")
-
-        # Save results to CSV
-        results_df = pd.DataFrame(trial_results)
-        results_df.to_csv(f'localgg/optuna/optuna_trials_gp_{timestamp}.csv', index=False)
-
-        # Save detailed study information to JSON
-        study_info = {
-            'best_params': study.best_params,
-            'best_value': study.best_value,
-            'n_trials': n_trials,
-            'datetime': timestamp,
-            'all_trials': trial_results
-        }
-
-        with open(f'localgg/optuna/optuna_study_gp_{timestamp}.json', 'w') as f:
-            json.dump(study_info, f, indent=4)
-
-        print(f"\nResults saved to:")
-        print(f"- optuna_trials_gp_{timestamp}.csv")
-        print(f"- optuna_study_gp_{timestamp}.json")
+    best_loss_gp = run_full_pipeline()
+    print(f"Final loss: {best_loss_gp}")
 
 if __name__ == "__main__":
     main()
