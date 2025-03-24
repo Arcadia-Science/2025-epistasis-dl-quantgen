@@ -1,9 +1,11 @@
 
 
 #coalescent pop scenarios to use
-SIM_SCENARIO = ['sim_WF_null', 'sim_WF_10kbt', 'sim_WF_1kbt']
+#SIM_SCENARIO = ['sim_WF_null', 'sim_WF_10kbt', 'sim_WF_1kbt']
+SIM_SCENARIO = ['sim_WF_10kbt']
+
 BP_LEN = [5000000]
-SAMPLE_SIZE = [10000]
+SAMPLE_SIZE = [100000]
 
 
 rule all:

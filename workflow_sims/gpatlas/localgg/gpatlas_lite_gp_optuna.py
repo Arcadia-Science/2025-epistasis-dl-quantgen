@@ -20,7 +20,7 @@ import json
 
 
 #variables
-n_trials_optuna = 75
+n_trials_optuna = 50
 n_phen=25
 
 n_loci = 100000
@@ -33,7 +33,7 @@ n_out_channels = 7
 
 batch_size = 128
 num_workers = 3
-base_file_name = 'gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_'
+base_file_name = 'gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 EPS = 1e-15

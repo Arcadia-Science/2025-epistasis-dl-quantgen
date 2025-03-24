@@ -369,3 +369,71 @@ class GP_net(nn.Module):
     def forward(self, x):
         x = self.gpnet(x)
         return x
+
+#residual based fully connected G -> P network
+class GP_net_combi(nn.Module):
+    """
+    Combined network using linear model predictions alongside raw genotype data
+
+    Args:
+        n_loci: #sites * #alleles
+        latent_space_g: geno hidden layer size
+        n_pheno: number of phenotypes to output/predict
+        linear_model: pre-trained linear model for additive effects
+    """
+    def __init__(self, n_loci, latent_space_g, n_pheno, linear_model):
+        super().__init__()
+        batchnorm_momentum = 0.8
+
+        # Store linear model and freeze its parameters
+        self.linear_model = linear_model
+        for param in self.linear_model.parameters():
+            param.requires_grad = False
+
+        # Adjusted input size to include phenotype predictions
+        combined_input_size = n_loci + n_pheno
+
+        # Modified network with concatenated input
+        self.gpnet = nn.Sequential(
+            nn.Linear(in_features=combined_input_size, out_features=latent_space_g),
+            nn.BatchNorm1d(latent_space_g, momentum=batchnorm_momentum),
+            nn.LeakyReLU(0.01, inplace=True),
+
+            nn.Linear(in_features=latent_space_g, out_features=latent_space_g),
+            nn.BatchNorm1d(latent_space_g, momentum=batchnorm_momentum),
+            nn.LeakyReLU(0.01, inplace=True),
+
+            nn.Linear(in_features=latent_space_g, out_features=n_pheno),
+            nn.BatchNorm1d(n_pheno, momentum=batchnorm_momentum)
+        )
+
+    def forward(self, x):
+        # Get linear model predictions (additive effects)
+        with torch.no_grad():
+            linear_pred = self.linear_model(x)
+
+        # Concatenate raw genotype data with linear predictions
+        combined_input = torch.cat([x, linear_pred], dim=1)
+
+        # Get non-linear component prediction
+        nonlinear_pred = self.gpnet(combined_input)
+
+        # Final prediction combines linear and non-linear components
+        # This represents: additive effects + non-additive effects (epistasis)
+        return linear_pred + nonlinear_pred
+
+#simple ridge regression equivalent meant to be trained with KL divergence to enforce gaussian prior
+class gplinear_kl(nn.Module):
+    """
+    simple ridge regression equivalent meant to be trained with KL divergence to enforce gaussian prior
+
+    Args:
+        n_loci: #sites * #alleles
+        n_pheno: number of phenotypes to output/predict
+    """
+    def __init__(self, n_loci, n_phen):
+        super(gplinear_kl, self).__init__()
+        self.linear = nn.Linear(n_loci, n_phen)
+
+    def forward(self, x):
+        return self.linear(x)

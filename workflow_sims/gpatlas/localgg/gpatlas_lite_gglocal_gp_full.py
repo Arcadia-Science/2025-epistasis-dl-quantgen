@@ -36,7 +36,7 @@ n_out_channels = 7
 batch_size = 128
 num_workers = 3
 base_file_name = 'gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_'
-base_file_name_out = 'localgg/test_sim_WF_10kbt_gamma0_GQtrain_addonly_corrs'
+base_file_name_out = 'localgg/test_sim_WF_10kbt_optuna_gamma_lr001'
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -323,7 +323,7 @@ def train_gp_model(GQP, train_loader, test_loader=None,
                          phen_indices=None,
                          patience=2,      # Number of epochs to wait for improvement
                          min_delta=0.003, # Minimum change to count as improvement
-                         learning_rate=0.00001, device=device):
+                         learning_rate=0.001, device=device):
     """
     Train gp network
     """
@@ -480,8 +480,8 @@ def run_full_pipeline():
     """
     ##################
     # geno autoencoder
-    glatent = 3500
-    gamma_fc_loss = 0
+    glatent = 3476
+    gamma_fc_loss = 1.813
 
     GQ = gpatlas.LDGroupedAutoencoder(
         input_length=input_length,
@@ -505,7 +505,7 @@ def run_full_pipeline():
 
     ##################
     #pheno autoencdoer
-    latent_space_p = 2500
+    latent_space_p = 1178
 
     Q = gpatlas.Q_net(phen_dim=n_phen, N = latent_space_p).to(device)
     P = gpatlas.P_net(phen_dim=n_phen, N = latent_space_p).to(device)
@@ -518,7 +518,7 @@ def run_full_pipeline():
 
     ##################
     #gp network
-    latent_space_gp = 2500
+    latent_space_gp = 2985
 
     GQP = gpatlas.GQ_to_P_net(N=latent_space_p, latent_space_g=glatent, latent_space_gp=latent_space_gp).to(device)
 
@@ -528,7 +528,7 @@ def run_full_pipeline():
                          train_loader=train_loader_gp,
                          test_loader=test_loader_gp,
                          train_gq=True,
-                         phen_indices=[0,1,2,3,4],
+                         #phen_indices=[0,1,2,3,4],
                          n_loci=n_loci,
                          n_alleles=n_alleles,
                          gen_noise=0.99,

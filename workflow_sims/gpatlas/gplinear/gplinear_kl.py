@@ -5,22 +5,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
-from torch.utils.data.dataset import Dataset
 import numpy as np
-from sklearn.metrics import r2_score
-import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
-import seaborn as sns
-
+import matplotlib.pyplot as plt
 import pandas as pd
-from pathlib import Path
-from typing import cast
-import h5py
-import time as tm
-from datetime import datetime
-
-
+import seaborn as sns
 
 #variables
 n_phen=25
@@ -30,11 +19,11 @@ latent_space_g = 3500
 EPS = 1e-15
 
 
-batch_size = 128
+batch_size = 3000
 num_workers = 3
 
-base_file_name = 'gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_'
-base_file_name_out = 'test_sim_WF_10kbt_gpnet'
+base_file_name = 'gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_'
+base_file_name_out = 'gplinear/test_sim_WF_1kbt_gplinear_kl01'
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -45,43 +34,52 @@ print(f"Using device: {device}")
 
 loaders = gpatlas.create_data_loaders(base_file_name, batch_size=128, num_workers=3, shuffle=True)
 
-train_loader_geno = loaders['train_loader_geno']
-test_loader_geno = loaders['test_loader_geno']
-
-train_loader_pheno = loaders['train_loader_pheno']
-test_loader_pheno = loaders['test_loader_pheno']
-
 train_loader_gp = loaders['train_loader_gp']
 test_loader_gp = loaders['test_loader_gp']
 
 ##########################################################################################
 ##########################################################################################
 
-def train_gpnet(model, train_loader, test_loader=None,
-                         n_loci=None,
-                         n_alleles=2,
-                         max_epochs=50,  # Set a generous upper limit
-                         patience=3,      # Number of epochs to wait for improvement
-                         min_delta=0.003, # Minimum change to count as improvement
-                         learning_rate=0.001, weight_decay=1e-5, device=device):
-    """
-    Train model with early stopping to prevent overtraining
-    """
-    # Move model to device
-    model = model.to(device)
+class gplinear_kl(nn.Module):
+    def __init__(self, n_loci, n_phen):
+        super(gplinear_kl, self).__init__()
+        self.linear = nn.Linear(n_loci, n_phen)
 
-    # Initialize optimizer with proper weight decay
-    optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    def forward(self, x):
+        return self.linear(x)
 
-    # Learning rate scheduler
+##########################################################################################
+##########################################################################################
+
+def kl_divergence_loss(model, prior_var=1.0):
+    """KL divergence to standard normal prior N(0,1)"""
+    kl_loss = 0
+    for param in model.parameters():
+        # Simplified KL for fixed variance posterior to N(0,1) prior
+        kl_loss += 0.5 * torch.sum(param ** 2)
+    return kl_loss
+
+##########################################################################################
+##########################################################################################
+
+# Training loop with tunable regularization strength
+def train_gplinear(model, train_loader, test_loader,
+          kl_weight = 0.01,
+          learning_rate=0.001,
+          max_epochs=200,
+          min_delta = 0.001,
+          patience = 20,
+          device=device):
+
+    optimizer = optim.SGD(model.parameters(), lr=learning_rate)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.5, patience=3
     )
 
     history = {
-        'train_loss': [],
-        'test_loss': [],
-        'epochs_trained': 0
+    'train_loss': [],
+    'test_loss': [],
+    'epochs_trained': 0
     }
 
     # Early stopping variables
@@ -90,30 +88,31 @@ def train_gpnet(model, train_loader, test_loader=None,
     best_model_state = None
     patience_counter = 0
 
-    # Training loop
+
     for epoch in range(max_epochs):
-        # Training
         model.train()
         train_loss = 0
 
         for i, (phens, gens) in enumerate(train_loader):
-
+            # Convert data to tensors
             phens = phens.to(device)
             gens = gens[:, : n_loci * n_alleles]
             gens = gens.to(device)
 
             # Forward pass
-            optimizer.zero_grad()
             output = model(gens)
 
-            # focal loss
-            g_p_recon_loss = F.l1_loss(output + EPS, phens + EPS)
+            mse_loss = F.l1_loss(output + EPS, phens + EPS)
+            kl_loss = kl_divergence_loss(model)
+            # Combined loss (equivalent to ridge regression with lambda = kl_weight)
+            total_loss = mse_loss + kl_weight * kl_loss
 
             # Backward and optimize
-            g_p_recon_loss.backward()
+            optimizer.zero_grad()
+            total_loss.backward()
             optimizer.step()
 
-            train_loss += g_p_recon_loss.item()
+            train_loss += total_loss.item()
 
         avg_train_loss = train_loss / len(train_loader)
         history['train_loss'].append(avg_train_loss)
@@ -128,9 +127,10 @@ def train_gpnet(model, train_loader, test_loader=None,
                     phens = phens.to(device)
                     gens = gens[:, : n_loci * n_alleles]
                     gens = gens.to(device)
-
                     output = model(gens)
-                    test_loss += F.l1_loss(output + EPS, phens + EPS)
+                    #evaluate on ordinary MSE loss
+                    mse_loss = F.l1_loss(output + EPS, phens + EPS)
+                    test_loss += mse_loss.item()
 
             avg_test_loss = test_loss / len(test_loader)
             history['test_loss'].append(avg_test_loss)
@@ -168,24 +168,21 @@ def train_gpnet(model, train_loader, test_loader=None,
 
     return model, best_loss, history
 
-
-#####################################################################################################################
-#####################################################################################################################
+##########################################################################################
+##########################################################################################
 
 def run_full_pipeline():
     """
     Objective function for Optuna that uses early stopping
     """
-    model = gpatlas.GP_net(
+    model = gplinear_kl(
     n_loci=n_loci,
-    latent_space_g=latent_space_g,
-    n_pheno=n_phen,
-    )
+    n_phen=n_phen,
+    ).to(device)
 
-    model, best_loss_gp, history = train_gpnet(model=model,
+    model, best_loss_gp, history = train_gplinear(model=model,
                                             train_loader=train_loader_gp,
                                             test_loader=test_loader_gp,
-                                            n_loci=n_loci,
                                             device=device)
     model.eval()
 
@@ -196,6 +193,7 @@ def run_full_pipeline():
     with torch.no_grad():
         for phens, gens in test_loader_gp:
             phens = phens.to(device)
+            gens = gens[:, : n_loci * n_alleles]
             gens = gens.to(device)
 
             # Get predictions

@@ -101,11 +101,11 @@ class GenoDataset(BaseDataset):
 
 ##########################################################################################
 ##########################################################################################
-train_data_gp = GenoPhenoDataset('gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_train.hdf5')
-test_data_gp = GenoPhenoDataset('gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_test.hdf5')
+train_data_gp = GenoPhenoDataset('gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_train.hdf5')
+test_data_gp = GenoPhenoDataset('gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_test.hdf5')
 
-train_data_pheno = PhenoDataset('gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_train.hdf5')
-test_data_pheno = PhenoDataset('gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_test.hdf5')
+train_data_pheno = PhenoDataset('gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_train.hdf5')
+test_data_pheno = PhenoDataset('gpatlas_input/test_sim_WF_10kbt_10000n_5000000bp_test.hdf5')
 
 ##########################################################################################
 ##########################################################################################
