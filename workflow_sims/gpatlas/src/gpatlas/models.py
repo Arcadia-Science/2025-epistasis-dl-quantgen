@@ -420,7 +420,8 @@ class GP_net_combi(nn.Module):
 
         # Final prediction combines linear and non-linear components
         # This represents: additive effects + non-additive effects (epistasis)
-        return linear_pred + nonlinear_pred
+        #return linear_pred + nonlinear_pred
+        return nonlinear_pred
 
 #simple ridge regression equivalent meant to be trained with KL divergence to enforce gaussian prior
 class gplinear_kl(nn.Module):

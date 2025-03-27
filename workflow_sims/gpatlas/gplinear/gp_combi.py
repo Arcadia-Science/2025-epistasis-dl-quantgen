@@ -178,11 +178,12 @@ def train_gplinear(model, train_loader, test_loader,
 ##########################################################################################
 
 def train_gpcombi(model, train_loader, test_loader=None,
+                         linear_model=None,
                          n_loci=None,
                          n_alleles=2,
                          max_epochs=100,  # Set a generous upper limit
                          patience=10,      # Number of epochs to wait for improvement
-                         min_delta=0.003, # Minimum change to count as improvement
+                         min_delta=0.001, # Minimum change to count as improvement
                          learning_rate=0.001, weight_decay=1e-5, device=device):
     """
     Train model with early stopping to prevent overtraining
@@ -222,12 +223,14 @@ def train_gpcombi(model, train_loader, test_loader=None,
             gens = gens[:, : n_loci * n_alleles]
             gens = gens.to(device)
 
+            phens_add = linear_model(gens)
+
             # Forward pass
             optimizer.zero_grad()
             output = model(gens)
 
             # focal loss
-            g_p_recon_loss = F.l1_loss(output + EPS, phens + EPS)
+            g_p_recon_loss = F.l1_loss(output + EPS, phens - (phens_add + EPS))
 
             # Backward and optimize
             g_p_recon_loss.backward()
@@ -249,8 +252,10 @@ def train_gpcombi(model, train_loader, test_loader=None,
                     gens = gens[:, : n_loci * n_alleles]
                     gens = gens.to(device)
 
+                    phens_add = linear_model(gens)
+
                     output = model(gens)
-                    test_loss += F.l1_loss(output + EPS, phens + EPS)
+                    test_loss += F.l1_loss(phens_add + output + EPS, phens)
 
             avg_test_loss = test_loss / len(test_loader)
             history['test_loss'].append(avg_test_loss)
@@ -317,6 +322,7 @@ def run_full_pipeline():
     model, best_loss_gp, history = train_gpcombi(model=model,
                                             train_loader=train_loader_gp,
                                             test_loader=test_loader_gp,
+                                            linear_model=linear_model,
                                             n_loci=n_loci,
                                             device=device)
     model.eval()
@@ -324,6 +330,8 @@ def run_full_pipeline():
     #visualize results
     true_phenotypes = []
     predicted_phenotypes = []
+    non_linear_preds = []
+    linear_preds = []
 
     with torch.no_grad():
         for phens, gens in test_loader_gp:
@@ -332,23 +340,36 @@ def run_full_pipeline():
             gens = gens.to(device)
 
             # Get predictions
-            predictions = model(gens)
+            linear_pred = linear_model(gens)
+            non_linear_pred = model(gens)
+            predictions = linear_pred + non_linear_pred
 
             # Store results
+            non_linear_preds.append(non_linear_pred.cpu().numpy())
+            linear_preds.append(linear_pred.cpu().numpy())
             true_phenotypes.append(phens.cpu().numpy())
             predicted_phenotypes.append(predictions.cpu().numpy())
 
     # Concatenate batches
     true_phenotypes = np.concatenate(true_phenotypes)
     predicted_phenotypes = np.concatenate(predicted_phenotypes)
+    linear_preds = np.concatenate(linear_preds)
+    non_linear_preds = np.concatenate(non_linear_preds)
+
 
     # Calculate correlations for each phenotype
     correlations = []
     p_values = []
+    correlations_epi = []
+    correlations_add = []
+
     for i in range(n_phen):
-        corr, p_val = pearsonr(true_phenotypes[:, i], predicted_phenotypes[:, i])
+        corr, _ = pearsonr(true_phenotypes[:, i], predicted_phenotypes[:, i])
         correlations.append(corr)
-        p_values.append(p_val)
+        corr_resi, _ = pearsonr((true_phenotypes[:, i] - linear_preds[:, i]), non_linear_preds[:, i])
+        correlations_epi.append(corr_resi)
+        corr_add, _ = pearsonr(true_phenotypes[:, i] , linear_preds[:, i])
+        correlations_add.append(corr_add)
 
     # Create data for the boxplot
     boxplot_data = []
@@ -385,7 +406,8 @@ def run_full_pipeline():
     results_df = pd.DataFrame({
         'trait_number': range(1, n_phen + 1),
         'pearson_correlation': correlations,
-        'p_value': p_values,
+        'correlations_epi': correlations_epi,
+        'correlations_add': correlations_add,
         'true_mean': [np.mean(true_phenotypes[:, i]) for i in range(n_phen)],
         'pred_mean': [np.mean(predicted_phenotypes[:, i]) for i in range(n_phen)],
         'true_std': [np.std(true_phenotypes[:, i]) for i in range(n_phen)],
