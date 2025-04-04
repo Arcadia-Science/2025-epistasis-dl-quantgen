@@ -30,11 +30,12 @@ latent_space_g = 3000
 EPS = 1e-15
 
 
-batch_size = 128
+batch_size = 384
 num_workers = 3
 
-base_file_name = 'gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_'
-base_file_name_out = 'gplinear/test_sim_WF_1kbt_gpcombi'
+#base_file_name = 'gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_'
+base_file_name = '../alphasimr_upsample/test_sim_WF_1kbt_100kups_5mb_'
+base_file_name_out = 'gplinear/test_sim_WF_1kbt_100kups_5mb_'
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -71,7 +72,7 @@ def kl_divergence_loss(model, prior_var=1.0):
 # Training loop with tunable regularization strength
 def train_gplinear(model, train_loader, test_loader,
           kl_weight = 0.01,
-          learning_rate=0.001,
+          learning_rate=0.0001,
           max_epochs=200,
           min_delta = 0.001,
           patience = 20,
