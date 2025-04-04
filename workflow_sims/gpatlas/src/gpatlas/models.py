@@ -223,16 +223,18 @@ class Q_net(nn.Module):
         phen_dim: Dimension of the phenotype data
         N: Hidden layer dimension and latent dimension
     """
-    def __init__(self, phen_dim=25, N=1000):
+    def __init__(self, phen_dim=25, N=1000, hidden_dim = None):
         super().__init__()
 
         batchnorm_momentum = 0.8
         latent_dim = N
+        if hidden_dim is None:
+            hidden_dim = N
         self.encoder = nn.Sequential(
-            nn.Linear(in_features=phen_dim, out_features=N),
-            nn.BatchNorm1d(N, momentum=batchnorm_momentum),
+            nn.Linear(in_features=phen_dim, out_features=hidden_dim),
+            nn.BatchNorm1d(hidden_dim, momentum=batchnorm_momentum),
             nn.LeakyReLU(0.01, inplace=True),
-            nn.Linear(in_features=N, out_features=latent_dim),
+            nn.Linear(in_features=hidden_dim, out_features=latent_dim),
             nn.BatchNorm1d(latent_dim, momentum=batchnorm_momentum),
             nn.LeakyReLU(0.01, inplace=True),
         )
@@ -250,18 +252,20 @@ class P_net(nn.Module):
         phen_dim: Dimension of the phenotype data
         N: Hidden layer dimension and latent dimension
     """
-    def __init__(self, phen_dim=25, N=1000):
+    def __init__(self, phen_dim=25, N=1000, hidden_dim = None):
         super().__init__()
 
         out_phen_dim = phen_dim
         latent_dim = N
+        if hidden_dim is None:
+            hidden_dim = N
         batchnorm_momentum = 0.8
 
         self.decoder = nn.Sequential(
-            nn.Linear(in_features=latent_dim, out_features=N),
-            nn.BatchNorm1d(N, momentum=batchnorm_momentum),
-            nn.LeakyReLU(0.01),
-            nn.Linear(in_features=N, out_features=out_phen_dim),
+            nn.Linear(in_features=latent_dim, out_features=hidden_dim),
+            nn.BatchNorm1d(hidden_dim, momentum=batchnorm_momentum),
+            nn.LeakyReLU(0.01, inplace=True),
+            nn.Linear(in_features=hidden_dim, out_features=out_phen_dim),
         )
 
     def forward(self, x):
