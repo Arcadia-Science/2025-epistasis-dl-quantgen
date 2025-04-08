@@ -10,6 +10,7 @@ __version__ = "0.1.0"
 # Import commonly used functions and classes for easier access
 from .datasets import *
 from .models import *
+from .accessory_funs import *
 """
 from .training import (
 train_localgg_model,
