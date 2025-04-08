@@ -34,8 +34,8 @@ batch_size = 1000
 num_workers = 3
 
 #base_file_name = 'gpatlas_input/test_sim_WF_1kbt_10000n_5000000bp_'
-base_file_name = 'test_sim_WF_1kbt_10k_1mb_'
-base_file_name_out = 'experiments/test_sim_WF_1kbt_10k_1mb_gpcombi'
+base_file_name = 'test_sim_WF_1kbt_100k_100sites_'
+base_file_name_out = 'experiments/test_sim_WF_1kbt_100k_100sites_gpcombi'
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

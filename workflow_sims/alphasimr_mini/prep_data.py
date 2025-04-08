@@ -6,7 +6,7 @@ import numpy as np
 import pickle as pk
 import h5py
 
-base_file = 'alphasimr_mini/test_sim_WF_1kbt_10k_1mb'
+base_file = 'alphasimr_mini/test_sim_WF_1kbt_100k_100sites'
 ######################################################################################
 ######################################################################################
 

@@ -32,7 +32,7 @@ input_length = n_loci * n_alleles
 batch_size = 128
 num_workers = 3
 base_file_name = 'BYxRM_'
-base_file_name_out = 'BYxRM_gpdave'
+base_file_name_out = 'experiments/BYxRM_gpdave_1000_lr001'
 
 batchnorm_momentum = 0.8
 reg_lr = 0.001
@@ -213,7 +213,7 @@ def train_pp_model(Q, P, train_loader, test_loader=None,
 #train GP layers
 
 def train_gp_model(GQ, train_loader, test_loader=None,
-                         num_epochs_gp=100,  # Set a generous upper limit
+                         num_epochs_gp=1000,  # Set a generous upper limit
                          n_loci=None,
                          n_alleles=n_alleles,
                          gen_noise=None,
@@ -221,7 +221,7 @@ def train_gp_model(GQ, train_loader, test_loader=None,
                          weights_regularization_l1=None,
                          weights_regularization_l2=None,
                          phen_indices=None,
-                         patience=10,      # Number of epochs to wait for improvement
+                         patience=1000,      # Number of epochs to wait for improvement
                          min_delta=0.003, # Minimum change to count as improvement
                          device=device):
     """
@@ -236,7 +236,10 @@ def train_gp_model(GQ, train_loader, test_loader=None,
     P.requires_grad_(False)
     P.eval() #set pheno decoder to eval only
 
-    history = {'epochs_trained': 0}
+    history = {
+        'epochs_trained': 0,
+        'train_losses': [],
+        'test_losses': [],}
 
     # Early stopping variables
     best_loss_gp = float('inf')
@@ -287,6 +290,7 @@ def train_gp_model(GQ, train_loader, test_loader=None,
             phens_selected = phens[:, phen_mask]
 
             g_p_recon_loss = F.mse_loss(X_selected + EPS, phens_selected + EPS)
+            epoch_losses_gp.append(float(g_p_recon_loss.detach()))
 
             l1_reg = torch.linalg.norm(torch.sum(GQ.encoder[0].weight, axis=0), 1)
             l2_reg = torch.linalg.norm(torch.sum(GQ.encoder[0].weight, axis=0), 2)
@@ -295,6 +299,8 @@ def train_gp_model(GQ, train_loader, test_loader=None,
             g_p_recon_loss.backward()
             optim_GQ_enc.step()
 
+        avg_train_loss_gp = np.mean(epoch_losses_gp)
+        history['train_losses'].append(avg_train_loss_gp)
 
     # Test set evaluation GP
         if epoch_gp % 1 == 0:
@@ -317,6 +323,7 @@ def train_gp_model(GQ, train_loader, test_loader=None,
                     test_losses_gp.append(float(test_loss))
 
             avg_test_loss_gp = np.mean(test_losses_gp)
+            history['test_losses'].append(avg_test_loss_gp)
             print(f"Epoch {epoch_gp+1} test loss: {avg_test_loss_gp}")
 
             #early stoppage loop
@@ -337,10 +344,35 @@ def train_gp_model(GQ, train_loader, test_loader=None,
                 print(f"Early stopping triggered after {epoch_gp+1} epochs")
                 break
 
+    history['epochs_trained'] = epoch_gp + 1
+
     #reload best model after training done
     if best_model_state is not None:
         print(f"Restoring best model from epoch {best_epoch+1}")
         GQ.load_state_dict(best_model_state)
+
+    #plot loss curves
+    plt.figure(figsize=(10, 5))
+    plt.plot(range(1, len(history['train_losses']) + 1), history['train_losses'], label='Training Loss')
+
+    if test_loader is not None:
+        plt.plot(range(1, len(history['test_losses']) + 1), history['test_losses'], label='Validation Loss')
+
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.title('Training and Validation Loss')
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.7)
+
+    # Add vertical line at the best epoch if early stopping occurred
+    if best_model_state is not None:
+        plt.axvline(x=best_epoch+1, color='r', linestyle='--',
+                   label=f'Best model (epoch {best_epoch+1})')
+        plt.legend()
+
+    plt.tight_layout()
+    plt.savefig(f'{base_file_name_out}_gp_loss_curves.png')
+    plt.close()
 
     return best_loss_gp, GQ
 
@@ -356,9 +388,6 @@ def train_gp_model(GQ, train_loader, test_loader=None,
 
 
 def run_full_pipeline():
-    """
-    Objective function for Optuna that uses early stopping
-    """
     ##################
     #pheno autoencdoer
     hidden_dim = 64
