@@ -7,7 +7,7 @@ set.seed(42)
 n_iterations <- 10  # You can adjust this number based on your needs
 
 # Base file name - adjust if needed
-base_file <- 'test_sim_qhaplo_10k_100sites_Ve0'
+base_file <- 'test_sim_qhaplo_100k_1000sites_Ve0'
 
 #######################
 # Read data

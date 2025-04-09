@@ -33,8 +33,8 @@ EPS = 1e-15
 batch_size = 128
 num_workers = 3
 
-base_file_name = 'alphasimr_mini/test_sim_qhaplo_100k_1000sites_Ve0_'
-base_file_name_out = 'alphasimr_mini/experiments/test_sim_qhaplo_100k_1000sites_Ve0_'
+base_file_name = 'test_sim_qhaplo_100k_1000sites_Ve0_'
+base_file_name_out = 'experiments/test_sim_qhaplo_100k_1000sites_Ve0'
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -233,6 +233,7 @@ def run_full_pipeline():
 
     model.eval()
 
+    """
     loss_landscape_data = gpatlas.visualize_loss_landscape(
         model=model,
         train_loader=train_loader_gp,
@@ -247,7 +248,7 @@ def run_full_pipeline():
         n_alleles=n_alleles,
         base_file_name_out=base_file_name_out
     )
-
+    """
 
     return best_loss_gp
 

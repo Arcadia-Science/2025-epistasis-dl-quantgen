@@ -11,7 +11,7 @@ n_iterations = 10  # You can adjust this number based on your needs
 # Set random seed for reproducibility
 np.random.seed(42)
 
-base_file = 'test_sim_qhaplo_10k_100sites_Ve0'
+base_file = 'test_sim_qhaplo_100k_10ksites_Ve0'
 
 print("Processing input files")
 # Load genotype, phenotype, and effect files
@@ -128,11 +128,3 @@ summary_df = pd.DataFrame(summary_stats)
 # Print summary statistics
 print("\nSummary Statistics (averaged across iterations):")
 print(summary_df)
-
-# Print detailed information for each trait
-for trait in sorted(trait_results.keys()):
-    trait_df = pd.DataFrame(trait_results[trait])
-    print(f"\nTrait {trait} statistics:")
-    print(f"  Phenotype correlation: {trait_df['pearson_corr_pheno'].mean():.4f} ± {trait_df['pearson_corr_pheno'].std():.4f}")
-    print(f"  Effect correlation: {trait_df['pearson_corr_beta'].mean():.4f} ± {trait_df['pearson_corr_beta'].std():.4f}")
-    print(f"  Best lambda: {trait_df['best_lambda'].mean():.4e} ± {trait_df['best_lambda'].std():.4e}")
