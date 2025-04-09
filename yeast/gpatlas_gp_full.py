@@ -32,10 +32,10 @@ input_length = n_loci * n_alleles
 batch_size = 128
 num_workers = 3
 base_file_name = 'BYxRM_'
-base_file_name_out = 'experiments/BYxRM_gpdave_1000_lr001'
+base_file_name_out = 'experiments/BYxRM_gpdave_1000_lr0001'
 
 batchnorm_momentum = 0.8
-reg_lr = 0.001
+reg_lr = 0.0001
 adam_b = (0.5, 0.999)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

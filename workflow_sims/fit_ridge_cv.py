@@ -18,9 +18,9 @@ print("Running rr fits")
 # Convert genotype matrix (n_samples x n_markers)
 Z = geno.T.values
 
-# Train/Test Split (First 90% for training)
+# Train/Test Split (First 85% for training)
 n_samples = Z.shape[0]
-split_index = int(n_samples * 0.9)  # 90% train, 10% test
+split_index = int(n_samples * 0.15)  # 90% train, 10% test
 
 Z_train, Z_test = Z[:split_index, :], Z[split_index:, :]
 
