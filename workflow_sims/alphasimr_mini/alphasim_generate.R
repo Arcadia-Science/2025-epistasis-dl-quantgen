@@ -5,7 +5,7 @@ library(reshape2)
 
 set.seed(1)
 #founders coalescent sim
-sim_WF_1kbt <- function(n_ind, bp_len) {
+"sim_WF_1kbt <- function(n_ind, bp_len) {
   runMacs2(
     n_ind,
     nChr = 1,
@@ -22,10 +22,13 @@ sim_WF_1kbt <- function(n_ind, bp_len) {
     returnCommand = FALSE,
     nThreads = NULL
   )
-}
+}"
 
+n_qtl <- 1000
 
-founderGenomes = sim_WF_1kbt(10000,1e+05)
+founderGenomes = quickHaplo(nInd=100000, nChr=1, segSites=n_qtl, ploidy=1)
+
+#founderGenomes = sim_WF_1kbt(10000,1e+05)
 
 
 #############################################################
@@ -37,7 +40,7 @@ SP = SimParam$new(founderGenomes)
 
 #add 1 traits for each level of relative epistasis (Vaa/Va at 0.5 AF)
 SP$addTraitAE(
-  nQtlPerChr=100, # Carefully tuned with meanDD
+  nQtlPerChr=n_qtl, # Carefully tuned with meanDD
   mean=0, # ~1981 value from Eras data
   var=3, # Chosen for appropriate rate of gain
   relAA=0, # relative Vaa in a diploid organism with 50/50 allele freq
@@ -45,10 +48,10 @@ SP$addTraitAE(
 )
 
 SP$addTraitAE(
-  nQtlPerChr=100, # Carefully tuned with meanDD
+  nQtlPerChr=n_qtl, # Carefully tuned with meanDD
   mean=0, # ~1981 value from Eras data
   var=3, # Chosen for appropriate rate of gain
-  relAA=3, # relative Vaa in a diploid organism with 50/50 allele freq
+  relAA=1, # relative Vaa in a diploid organism with 50/50 allele freq
   useVarA = F
 )
 
@@ -74,7 +77,7 @@ GP_p <- as.data.frame(pheno(pop))
 GP_p$ind <- row.names(GP_p)
 GP_p <- GP_p %>% select(ind, everything())
 
-write.table(GP_p, "test_sim_WF_1kbt_10k_100sites_Ve0_p.txt", quote = F, col.names = T, row.names = F)
+write.table(GP_p, "test_sim_qhaplo_100k_1000sites_Ve0_p.txt", quote = F, col.names = T, row.names = F)
 
 #############################################################
 #############################################################
@@ -111,7 +114,7 @@ loci_all = rbind(loci_all, loci)
 
 }
 
-write.table(loci_all, "test_sim_WF_1kbt_10k_100sites_Ve0_eff.txt", quote = F, col.names = T, row.names = F)
+write.table(loci_all, "test_sim_qhaplo_100k_1000sites_Ve0_eff.txt", quote = F, col.names = T, row.names = F)
 
 #############################################################
 #############################################################
@@ -122,4 +125,4 @@ GP_g$qtl <- row.names(GP_g)
 GP_g <- GP_g %>% select(qtl, everything())
 
 
-write.table(GP_g, "test_sim_WF_1kbt_10k_100sites_Ve0_g.txt", quote = F, col.names = T, row.names = F)
+write.table(GP_g, "test_sim_qhaplo_100k_1000sites_Ve0_g.txt", quote = F, col.names = T, row.names = F)

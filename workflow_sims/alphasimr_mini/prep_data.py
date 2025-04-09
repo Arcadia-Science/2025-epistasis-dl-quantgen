@@ -6,7 +6,7 @@ import numpy as np
 import pickle as pk
 import h5py
 
-base_file = 'alphasimr_mini/test_sim_WF_1kbt_100k_100sites'
+base_file = 'alphasimr_mini/test_sim_qhaplo_100k_1000sites_Ve0'
 ######################################################################################
 ######################################################################################
 
@@ -39,7 +39,7 @@ def save_to_hdf5(data_input: dict, hdf5_path: Path, gzip: bool = True) -> Path:
                 compression="gzip" if gzip else None,
             )
 
-        print(f"{hdf5_path} generated from {data_input}.")
+        print(f"{hdf5_path} generated.")
 
     return hdf5_path
 out_dict={}
