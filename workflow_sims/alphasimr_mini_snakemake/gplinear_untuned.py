@@ -8,9 +8,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 from scipy.stats import pearsonr
-import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
 
 #variables
 

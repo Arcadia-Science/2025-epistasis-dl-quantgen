@@ -1,14 +1,34 @@
 
-QTL_N = [100, 1000]
-SAMPLE_SIZE = [1000, 10000, 100000]
+QTL_N = [100, 1000, 10000]
+SAMPLE_SIZE = [1000, 10000, 100000, 1000000]
 
+VALID_COMBINATIONS = [
+    # Original combinations
+    {"qtl_n": 100, "sample_size": 1000},
+    {"qtl_n": 100, "sample_size": 10000},
+    {"qtl_n": 100, "sample_size": 100000},
+    {"qtl_n": 1000, "sample_size": 1000},
+    {"qtl_n": 1000, "sample_size": 10000},
+    {"qtl_n": 1000, "sample_size": 100000},
 
+    # New combinations with 10000 QTLs
+    {"qtl_n": 10000, "sample_size": 1000},
+    {"qtl_n": 10000, "sample_size": 10000},
+    {"qtl_n": 10000, "sample_size": 100000},
+    #{"qtl_n": 10000, "sample_size": 1000000},
+    ]
+
+def get_valid_outputs(pattern):
+    return [pattern.format(qtl_n=combo["qtl_n"], sample_size=combo["sample_size"])
+            for combo in VALID_COMBINATIONS]
+
+get_valid_outputs("alphasimr_output/qhaplo_{qtl_n}qtl_{sample_size}n_p.txt")
 rule all:
    input:
-        expand('gpnet/input_data/qhaplo_{qtl_n}qtl_{sample_size}n_train.hdf5', qtl_n = QTL_N, sample_size = SAMPLE_SIZE),
-        expand('gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations.csv', qtl_n = QTL_N, sample_size = SAMPLE_SIZE),
-        expand('gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations_untuned.csv', qtl_n = QTL_N, sample_size = SAMPLE_SIZE),
-        expand("gplinear/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations_untuned.csv", qtl_n=QTL_N, sample_size = SAMPLE_SIZE)
+        get_valid_outputs('gpnet/input_data/qhaplo_{qtl_n}qtl_{sample_size}n_train.hdf5'),
+        get_valid_outputs('gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations2.csv'),
+        get_valid_outputs('gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations_untuned.csv'),
+        get_valid_outputs("gplinear/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations_untuned.csv")
 
 
 #create hdf5 files for input to gpatlas
@@ -33,7 +53,7 @@ rule optimize_fit_gpnet:
         input_train_data = rules.generate_input_data.output.train_data_input,
         input_test_data = rules.generate_input_data.output.test_data_input,
     output:
-        pheno_corrs = 'gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations.csv'
+        pheno_corrs = 'gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations2.csv'
     resources:
     params:
         sample_size = "{sample_size}",
@@ -72,5 +92,4 @@ rule optimize_fit_gplinear_untuned:
         qtl_n = "{qtl_n}"
     threads: 12
     script:
-        "gpliner_untuned.py"
-
+        "gplinear_untuned.py"

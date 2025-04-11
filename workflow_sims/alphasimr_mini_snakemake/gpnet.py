@@ -32,7 +32,7 @@ n_loci = int(qtl_n) * 2
 n_alleles = 2
 latent_space_g = 3500
 EPS = 1e-15
-n_trials_optuna = 30
+n_trials_optuna = 7
 
 batch_size = 128
 num_workers = 3
@@ -180,8 +180,10 @@ def objective(trial: optuna.Trial,
     Objective function for Optuna that uses early stopping
     """
     # Hyperparameters to optimize
-    hidden_layer_size = trial.suggest_int('hidden_layer_size', 100, 10000)
-    learning_rate = trial.suggest_float('learning_rate', 1e-6, 1e-1, log=True)
+    predefined_lr_values = [0.5, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0001]
+
+    hidden_layer_size = trial.suggest_int('hidden_layer_size', 4096, 4096)
+    learning_rate = trial.suggest_categorical('learning_rate', predefined_lr_values)
 
 
     #define gpnet model
@@ -323,7 +325,7 @@ def main():
         })
 
         # Save to CSV
-        results_file = f'gpnet/{sim_name}_phenotype_correlations.csv'
+        results_file = f'gpnet/{sim_name}_phenotype_correlations2.csv'
         results_df.to_csv(results_file, index=False)
 
         # Save the best model
