@@ -19,11 +19,11 @@ latent_space_g = 3500
 EPS = 1e-15
 
 
-batch_size = 1000
+batch_size = 128
 num_workers = 3
 
-base_file_name = 'test_sim_WF_1kbt_10k_1mb_'
-base_file_name_out = 'experiments/test_sim_WF_1kbt_10k_1mb_kl01'
+base_file_name = 'test_sim_qhaplo_100k_1000sites_Ve0_'
+base_file_name_out = 'experiments/test_sim_qhaplo_100k_1000sites_Ve0_linear'
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -64,8 +64,8 @@ def kl_divergence_loss(model, prior_var=1.0):
 
 # Training loop with tunable regularization strength
 def train_gplinear(model, train_loader, test_loader,
-          kl_weight = 0.01,
-          learning_rate=0.001,
+          kl_weight = 0.1,
+          learning_rate=0.1,
           max_epochs=200,
           min_delta = 0.001,
           patience = 20,
@@ -214,37 +214,6 @@ def run_full_pipeline():
         corr, p_val = pearsonr(true_phenotypes[:, i], predicted_phenotypes[:, i])
         correlations.append(corr)
         p_values.append(p_val)
-
-    # Create data for the boxplot
-    boxplot_data = []
-    for i in range(0, n_phen, 1):
-        end_idx = min(i+5, n_phen)
-        group_name = f"{i+1}-{end_idx}"
-        for j in range(i, end_idx):
-            boxplot_data.append({
-                'trait_architecture': group_name,
-                'pearson_corr': correlations[j],
-                'trait_number': j+1
-            })
-
-    # Convert to DataFrame
-    corr_df = pd.DataFrame(boxplot_data)
-
-    # Create the boxplot with Seaborn
-    plt.figure(figsize=(4, 3.5))
-
-    sns.boxplot(x="trait_architecture", y="pearson_corr", data=corr_df)
-
-
-    # Customize the plot
-    plt.ylabel('Pearson Correlation (r)')
-    plt.xlabel('Trait trait_architecture')
-    plt.ylim(0, 1)
-    plt.axhline(y=0.7, color='red', linestyle='--')
-
-
-    plt.tight_layout()
-    plt.savefig(f'{base_file_name_out}_pheno_corr.png')
 
     # Create a detailed DataFrame with all results
     results_df = pd.DataFrame({
