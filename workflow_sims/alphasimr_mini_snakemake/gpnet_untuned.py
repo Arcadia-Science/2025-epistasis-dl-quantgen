@@ -174,14 +174,13 @@ def train_gpnet(model, train_loader, test_loader=None,
 #####################################################################################################################
 
 
-def objective(trial: optuna.Trial,
-             device: torch.device) -> float:
+def run_full_pipeline():
     """
-    Objective function for Optuna that uses early stopping
+    Fit gpnet with no hyperparameter optimization
     """
-    # Hyperparameters to optimize
-    hidden_layer_size = trial.suggest_int('hidden_layer_size', 100, 10000)
-    learning_rate = trial.suggest_float('learning_rate', 1e-6, 1e-1, log=True)
+    # Hyperparameters to fit
+    hidden_layer_size = 3500
+    learning_rate = 0.01
 
 
     #define gpnet model
@@ -199,106 +198,21 @@ def objective(trial: optuna.Trial,
                                             learning_rate=learning_rate,
                                             device=device)
     model.eval()
+        #visualize results
+    true_phenotypes = []
+    predicted_phenotypes = []
 
-    # Log useful information for this trial
-    trial.set_user_attr('epochs_trained', history['epochs_trained'])
-    trial.set_user_attr('training_history', {
-        'train_loss': history['train_loss'],
-        'test_loss': history['test_loss']
-    })
+    with torch.no_grad():
+        for phens, gens in test_loader_gp:
+            phens = phens.to(device)
+            gens = gens.to(device)
 
-    return best_loss_gp
+            # Get predictions
+            predictions = model(gens)
 
-###############################
-
-
-def main():
-    # Create study
-    study = optuna.create_study(direction='minimize')
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    # Run optimization
-    n_trials = n_trials_optuna
-
-    try:
-        # Create a list to store results as we go
-        trial_results = []
-
-        study.optimize(
-            lambda trial: objective(
-                trial=trial,
-                device=device
-            ),
-            n_trials=n_trials,
-            callbacks=[
-                lambda study, trial: trial_results.append({
-                    'trial_number': trial.number,
-                    'params': trial.params,
-                    'value': trial.value,
-                    'state': trial.state.name
-                })
-            ]
-        )
-
-    finally:
-        print("\nStudy completed!")
-        print(f"Best parameters found: {study.best_params}")
-        print(f"Best value achieved: {study.best_value}")
-
-        # Save results to CSV
-        results_df = pd.DataFrame(trial_results)
-        results_df.to_csv(f'gpnet/optuna/{sim_name}_optuna.csv', index=False)
-
-        # Save detailed study information to JSON
-        study_info = {
-            'best_params': study.best_params,
-            'best_value': study.best_value,
-            'n_trials': n_trials,
-            'all_trials': trial_results
-        }
-
-        with open(f'gpnet/optuna/{sim_name}_optuna.json', 'w') as f:
-            json.dump(study_info, f, indent=4)
-
-        # Reload best model with the optimized hyperparameters
-        print("\nReloading best model with optimized hyperparameters...")
-        best_hidden_layer_size = study.best_params['hidden_layer_size']
-
-        # Create model with best parameters
-        best_model = gpatlas.GP_net(
-            n_loci=n_loci,
-            latent_space_g=best_hidden_layer_size,
-            n_pheno=n_phen,
-        )
-
-        # Train the best model
-        best_model, best_loss, _ = train_gpnet(
-            model=best_model,
-            train_loader=train_loader_gp,
-            test_loader=test_loader_gp,
-            n_loci=n_loci,
-            learning_rate=study.best_params['learning_rate'],
-            device=device
-        )
-
-        # Evaluate model on test set and calculate Pearson correlation
-        best_model.eval()
-
-        # Collect true and predicted phenotypes
-        true_phenotypes = []
-        predicted_phenotypes = []
-
-        with torch.no_grad():
-            for phens, gens in test_loader_gp:
-                phens = phens.to(device)
-                gens = gens[:, : n_loci * n_alleles].to(device)
-
-                # Get predictions
-                predictions = best_model(gens)
-
-                # Store results
-                true_phenotypes.append(phens.cpu().numpy())
-                predicted_phenotypes.append(predictions.cpu().numpy())
+            # Store results
+            true_phenotypes.append(phens.cpu().numpy())
+            predicted_phenotypes.append(predictions.cpu().numpy())
 
         # Concatenate batches
         true_phenotypes = np.concatenate(true_phenotypes)
@@ -323,12 +237,18 @@ def main():
         })
 
         # Save to CSV
-        results_file = f'gpnet/{sim_name}_phenotype_correlations.csv'
+        results_file = f'gpnet/{sim_name}_phenotype_correlations_untuned.csv'
         results_df.to_csv(results_file, index=False)
 
-        # Save the best model
-        model_save_path = f'gpnet/{sim_name}_best_model.pt'
-        torch.save(best_model.state_dict(), model_save_path)
+
+    return best_loss_gp
+
+###############################
+
+
+def main():
+    best_loss_gp = run_full_pipeline()
+    print(f"Final loss: {best_loss_gp}")
 
 if __name__ == "__main__":
     main()
