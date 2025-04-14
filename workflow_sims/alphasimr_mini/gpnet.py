@@ -24,7 +24,7 @@ from datetime import datetime
 
 #variables
 n_phen=2
-n_loci = 2000
+n_loci = 400
 n_alleles = 2
 latent_space_g = 3500
 EPS = 1e-15
@@ -33,8 +33,8 @@ EPS = 1e-15
 batch_size = 128
 num_workers = 3
 
-base_file_name = 'test_sim_qhaplo_100k_1000sites_Ve0_'
-base_file_name_out = 'experiments/test_sim_qhaplo_100k_1000sites_Ve0'
+base_file_name = 'test_sim_qhaplo_10k_200sites_200qtl_Ve0_'
+base_file_name_out = 'experiments/test_sim_qhaplo_10k_200sites_200qtl_Ve0_gpnet'
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -61,9 +61,9 @@ def train_gpnet(model, train_loader, test_loader=None,
                          n_loci=None,
                          n_alleles=2,
                          max_epochs=50,  # Set a generous upper limit
-                         patience=10,      # Number of epochs to wait for improvement
+                         patience=15,      # Number of epochs to wait for improvement
                          min_delta=0.003, # Minimum change to count as improvement
-                         learning_rate=0.0001, weight_decay=1e-5, device=device):
+                         learning_rate=0.25, weight_decay=1e-5, device=device):
     """
     Train model with early stopping to prevent overtraining
     """

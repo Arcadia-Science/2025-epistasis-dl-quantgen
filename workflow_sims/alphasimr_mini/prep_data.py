@@ -6,7 +6,7 @@ import numpy as np
 import pickle as pk
 import h5py
 
-base_file = 'alphasimr_mini/test_sim_qhaplo_100k_1000sites_Ve0'
+base_file = 'test_sim_qhaplo_10k_200sites_200qtl_Ve0'
 ######################################################################################
 ######################################################################################
 

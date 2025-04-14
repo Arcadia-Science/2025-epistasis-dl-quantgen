@@ -7,7 +7,7 @@ set.seed(42)
 n_iterations <- 10  # You can adjust this number based on your needs
 
 # Base file name - adjust if needed
-base_file <- 'test_sim_qhaplo_100k_1000sites_Ve0'
+base_file <- 'test_sim_qhaplo_10k_200sites_200qtl_Ve0'
 
 #######################
 # Read data
@@ -100,4 +100,4 @@ for(i in 1:nrow(summary_stats)) {
 }
 
 # Save results to CSV (uncomment if needed)
-# write.csv(results, paste0(base_file, "_all_iterations.csv"), row.names = FALSE)
+write.csv(summary_stats, paste0("experiments/", base_file, "_rrblup_corr.csv"), row.names = FALSE, quote=F)

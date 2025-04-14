@@ -24,9 +24,10 @@ set.seed(1)
   )
 }"
 
-n_qtl <- 10000
+n_sites <- 300
+n_qtl <- 300
 
-founderGenomes = quickHaplo(nInd=100000, nChr=1, segSites=n_qtl, ploidy=1)
+founderGenomes = quickHaplo(nInd=10000, nChr=1, segSites=n_sites, ploidy=1)
 
 #founderGenomes = sim_WF_1kbt(10000,1e+05)
 
@@ -77,7 +78,7 @@ GP_p <- as.data.frame(pheno(pop))
 GP_p$ind <- row.names(GP_p)
 GP_p <- GP_p %>% select(ind, everything())
 
-write.table(GP_p, "test_sim_qhaplo_100k_10ksites_Ve0_p.txt", quote = F, col.names = T, row.names = F)
+write.table(GP_p, "test_sim_qhaplo_10k_300sites_300qtl_Ve0_p.txt", quote = F, col.names = T, row.names = F)
 
 #############################################################
 #############################################################
@@ -114,7 +115,7 @@ loci_all = rbind(loci_all, loci)
 
 }
 
-write.table(loci_all, "test_sim_qhaplo_100k_10ksites_Ve0_eff.txt", quote = F, col.names = T, row.names = F)
+write.table(loci_all, "test_sim_qhaplo_10k_300sites_300qtl_Ve0_eff.txt", quote = F, col.names = T, row.names = F)
 
 #############################################################
 #############################################################
@@ -125,4 +126,4 @@ GP_g$qtl <- row.names(GP_g)
 GP_g <- GP_g %>% select(qtl, everything())
 
 
-write.table(GP_g, "test_sim_qhaplo_100k_10ksites_Ve0_g.txt", quote = F, col.names = T, row.names = F)
+write.table(GP_g, "test_sim_qhaplo_10k_300sites_300qtl_Ve0_g.txt", quote = F, col.names = T, row.names = F)
