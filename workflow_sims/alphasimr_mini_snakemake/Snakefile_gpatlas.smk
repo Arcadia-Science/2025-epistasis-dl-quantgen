@@ -1,23 +1,35 @@
 
-QTL_N = [100, 1000, 10000]
-SAMPLE_SIZE = [1000, 10000, 100000, 1000000]
+QTL_N = [10, 20, 30, 40, 50, 100, 200, 300, 400, 500, 600]
+SAMPLE_SIZE = [1000, 10000, 100000]
 
 VALID_COMBINATIONS = [
-    # Original combinations
+    # combinations
     {"qtl_n": 100, "sample_size": 1000},
     {"qtl_n": 100, "sample_size": 10000},
-    {"qtl_n": 100, "sample_size": 100000},
-    {"qtl_n": 1000, "sample_size": 1000},
-    {"qtl_n": 1000, "sample_size": 10000},
-    {"qtl_n": 1000, "sample_size": 100000},
+    {"qtl_n": 200, "sample_size": 1000},
+    {"qtl_n": 200, "sample_size": 10000},
+    {"qtl_n": 300, "sample_size": 10000},
+    {"qtl_n": 400, "sample_size": 10000},
+    {"qtl_n": 500, "sample_size": 10000},
+    {"qtl_n": 600, "sample_size": 10000},
 
-    # New combinations with 10000 QTLs
-    {"qtl_n": 10000, "sample_size": 1000},
-    {"qtl_n": 10000, "sample_size": 10000},
-    {"qtl_n": 10000, "sample_size": 100000},
-    {"qtl_n": 1000, "sample_size": 1000000},
-    {"qtl_n": 10000, "sample_size": 1000000},
+    {"qtl_n": 300, "sample_size": 100000},
+    {"qtl_n": 400, "sample_size": 100000},
+    {"qtl_n": 500, "sample_size": 100000},
+    {"qtl_n": 600, "sample_size": 100000},
+
+    {"qtl_n": 10, "sample_size": 1000},
+    {"qtl_n": 20, "sample_size": 1000},
+    {"qtl_n": 30, "sample_size": 1000},
+    {"qtl_n": 40, "sample_size": 1000},
+    {"qtl_n": 50, "sample_size": 1000},
+    {"qtl_n": 100, "sample_size": 1000},
+    {"qtl_n": 200, "sample_size": 1000},
+    {"qtl_n": 300, "sample_size": 1000},
+
+
     ]
+
 
 def get_valid_outputs(pattern):
     return [pattern.format(qtl_n=combo["qtl_n"], sample_size=combo["sample_size"])
@@ -27,10 +39,10 @@ get_valid_outputs("alphasimr_output/qhaplo_{qtl_n}qtl_{sample_size}n_p.txt")
 rule all:
    input:
         get_valid_outputs('gpnet/input_data/qhaplo_{qtl_n}qtl_{sample_size}n_train.hdf5'),
-        get_valid_outputs('gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations.csv'),
+        #get_valid_outputs('gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations.csv'),
         get_valid_outputs('gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations_untuned.csv'),
         get_valid_outputs("gplinear/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations_untuned.csv"),
-        get_valid_outputs("gplinear/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations.csv")
+        #get_valid_outputs("gplinear/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations.csv")
 
 
 #create hdf5 files for input to gpatlas
