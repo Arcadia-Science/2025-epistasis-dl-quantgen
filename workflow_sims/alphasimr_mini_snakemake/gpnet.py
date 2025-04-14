@@ -325,7 +325,7 @@ def main():
         })
 
         # Save to CSV
-        results_file = f'gpnet/{sim_name}_phenotype_correlations2.csv'
+        results_file = f'gpnet/{sim_name}_phenotype_correlations.csv'
         results_df.to_csv(results_file, index=False)
 
         # Save the best model

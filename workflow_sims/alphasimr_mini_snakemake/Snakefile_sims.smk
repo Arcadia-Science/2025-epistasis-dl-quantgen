@@ -15,7 +15,8 @@ VALID_COMBINATIONS = [
     {"qtl_n": 10000, "sample_size": 1000},
     {"qtl_n": 10000, "sample_size": 10000},
     {"qtl_n": 10000, "sample_size": 100000},
-    {"qtl_n": 10000, "sample_size": 1000000},
+    {"qtl_n": 1000, "sample_size": 1000000},
+    {"qtl_n": 10000, "sample_size": 1000000}
     ]
 
 def get_valid_outputs(pattern):

@@ -268,7 +268,7 @@ def main():
         best_model = gpatlas.gplinear_kl(
             n_loci=n_loci,
             n_phen=n_phen,
-        )
+        ).to(device) 
 
         # Train the best model
         best_model, best_loss, _ = train_gplinear(

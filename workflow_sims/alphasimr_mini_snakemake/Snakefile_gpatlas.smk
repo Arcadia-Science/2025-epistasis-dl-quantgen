@@ -15,7 +15,8 @@ VALID_COMBINATIONS = [
     {"qtl_n": 10000, "sample_size": 1000},
     {"qtl_n": 10000, "sample_size": 10000},
     {"qtl_n": 10000, "sample_size": 100000},
-    #{"qtl_n": 10000, "sample_size": 1000000},
+    {"qtl_n": 1000, "sample_size": 1000000},
+    {"qtl_n": 10000, "sample_size": 1000000},
     ]
 
 def get_valid_outputs(pattern):
@@ -26,9 +27,10 @@ get_valid_outputs("alphasimr_output/qhaplo_{qtl_n}qtl_{sample_size}n_p.txt")
 rule all:
    input:
         get_valid_outputs('gpnet/input_data/qhaplo_{qtl_n}qtl_{sample_size}n_train.hdf5'),
-        get_valid_outputs('gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations2.csv'),
+        get_valid_outputs('gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations.csv'),
         get_valid_outputs('gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations_untuned.csv'),
-        get_valid_outputs("gplinear/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations_untuned.csv")
+        get_valid_outputs("gplinear/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations_untuned.csv"),
+        get_valid_outputs("gplinear/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations.csv")
 
 
 #create hdf5 files for input to gpatlas
@@ -53,7 +55,7 @@ rule optimize_fit_gpnet:
         input_train_data = rules.generate_input_data.output.train_data_input,
         input_test_data = rules.generate_input_data.output.test_data_input,
     output:
-        pheno_corrs = 'gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations2.csv'
+        pheno_corrs = 'gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations.csv'
     resources:
     params:
         sample_size = "{sample_size}",
@@ -93,3 +95,19 @@ rule optimize_fit_gplinear_untuned:
     threads: 12
     script:
         "gplinear_untuned.py"
+
+rule optimize_fit_gplinear:
+    #conda: "envs/gpatlas.yml"
+    conda: 'gpatlas'
+    input:
+        input_train_data = rules.generate_input_data.output.train_data_input,
+        input_test_data = rules.generate_input_data.output.test_data_input,
+    output:
+        pheno_corrs = 'gplinear/qhaplo_{qtl_n}qtl_{sample_size}n_phenotype_correlations.csv'
+    resources:
+    params:
+        sample_size = "{sample_size}",
+        qtl_n = "{qtl_n}"
+    threads: 12
+    script:
+        "gplinear.py"
