@@ -13,6 +13,7 @@ VALID_COMBINATIONS = [
     {"qtl_n": 500, "sample_size": 10000},
     {"qtl_n": 600, "sample_size": 10000},
 
+    {"qtl_n": 200, "sample_size": 100000},
     {"qtl_n": 300, "sample_size": 100000},
     {"qtl_n": 400, "sample_size": 100000},
     {"qtl_n": 500, "sample_size": 100000},
