@@ -12,7 +12,6 @@ n_iterations = 10  # You can adjust this number based on your needs
 # Set random seed for reproducibility
 np.random.seed(42)
 
-base_file = 'test_sim_qhaplo_100k_10ksites_Ve0'
 
 print("Processing input files")
 # Load genotype, phenotype, and effect files
