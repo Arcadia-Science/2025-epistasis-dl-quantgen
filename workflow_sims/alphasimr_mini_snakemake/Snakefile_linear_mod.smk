@@ -4,19 +4,18 @@ SAMPLE_SIZE = [1000, 10000, 100000]
 
 VALID_COMBINATIONS = [
     # combinations
-    {"qtl_n": 100, "sample_size": 1000},
     {"qtl_n": 100, "sample_size": 10000},
-    {"qtl_n": 200, "sample_size": 1000},
     {"qtl_n": 200, "sample_size": 10000},
     {"qtl_n": 300, "sample_size": 10000},
-    {"qtl_n": 400, "sample_size": 10000},
-    {"qtl_n": 500, "sample_size": 10000},
-    {"qtl_n": 600, "sample_size": 10000},
+    #{"qtl_n": 400, "sample_size": 10000},
+    #{"qtl_n": 500, "sample_size": 10000},
+    #{"qtl_n": 600, "sample_size": 10000},
 
-    {"qtl_n": 300, "sample_size": 100000},
-    {"qtl_n": 400, "sample_size": 100000},
-    {"qtl_n": 500, "sample_size": 100000},
-    {"qtl_n": 600, "sample_size": 100000},
+    #{"qtl_n": 200, "sample_size": 100000},
+    #{"qtl_n": 300, "sample_size": 100000},
+    #{"qtl_n": 400, "sample_size": 100000},
+    #{"qtl_n": 500, "sample_size": 100000},
+    #{"qtl_n": 600, "sample_size": 100000},
 
     {"qtl_n": 10, "sample_size": 1000},
     {"qtl_n": 20, "sample_size": 1000},
@@ -35,7 +34,8 @@ def get_valid_outputs(pattern):
 
 rule all:
    input:
-        get_valid_outputs("linear_model/qhaplo_{qtl_n}qtl_{sample_size}n_scklrr_corr_summary.txt"),
+        get_valid_outputs('linear_model/qhaplo_{qtl_n}qtl_{sample_size}n_scklrr_corr_summary.txt'),
+        get_valid_outputs('linear_model/qhaplo_{qtl_n}qtl_{sample_size}n_scklrr_epi_corr_summary.txt')
 
 #fit rrBLUP approximation through sci-kit learn ridge regression (cross validated)
 rule run_python_rrBLUP:
@@ -50,6 +50,21 @@ rule run_python_rrBLUP:
         mem_mb=25000
     script:
         'fit_ridge_cv.py'
+
+
+#fit rrBLUP approximation through sci-kit learn ridge regression (cross validated)
+rule run_python_rrBLUP_epistatic:
+    conda: 'gpatlas'
+    input:
+        input_pheno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{sample_size}n_p.txt',
+        input_geno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{sample_size}n_g.txt',
+        loci_effects = 'alphasimr_output/qhaplo_{qtl_n}qtl_{sample_size}n_eff.txt'
+    output:
+        correlation_summary = 'linear_model/qhaplo_{qtl_n}qtl_{sample_size}n_scklrr_epi_corr_summary.txt',
+    resources:
+        mem_mb=25000
+    script:
+        'fit_ridge_epistasis.py'
 
 
 """
