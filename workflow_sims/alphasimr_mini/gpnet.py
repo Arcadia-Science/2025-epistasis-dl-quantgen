@@ -24,17 +24,20 @@ from datetime import datetime
 
 #variables
 n_phen=2
-n_loci = 400
+n_loci = 1000
 n_alleles = 2
-latent_space_g = 3500
+
+latent_space_g = 4096
+latent_space_g1 = 300
+
 EPS = 1e-15
 
 
 batch_size = 128
 num_workers = 3
 
-base_file_name = 'test_sim_qhaplo_10k_200sites_200qtl_Ve0_'
-base_file_name_out = 'experiments/test_sim_qhaplo_10k_200sites_200qtl_Ve0_gpnet'
+base_file_name = 'test_sim_qhaplo_2k_500sites_100qtl_Ve0_'
+base_file_name_out = 'experiments/test_sim_qhaplo_2k_500sites_100qtl_Ve0_gpnet'
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -60,10 +63,11 @@ test_loader_gp = loaders['test_loader_gp']
 def train_gpnet(model, train_loader, test_loader=None,
                          n_loci=None,
                          n_alleles=2,
-                         max_epochs=50,  # Set a generous upper limit
+                         max_epochs=150,  # Set a generous upper limit
                          patience=15,      # Number of epochs to wait for improvement
                          min_delta=0.003, # Minimum change to count as improvement
-                         learning_rate=0.25, weight_decay=1e-5, device=device):
+                         learning_rate=0.1,
+                         l1_lambda=0.05, weight_decay=1e-7, device=device):
     """
     Train model with early stopping to prevent overtraining
     """
@@ -108,6 +112,17 @@ def train_gpnet(model, train_loader, test_loader=None,
 
             # focal loss
             g_p_recon_loss = F.l1_loss(output + EPS, phens + EPS)
+
+            first_layer_l1 = 0
+
+            for name, param in model.named_parameters():
+                # Check if the parameter belongs to the first linear layer
+                if 'gpnet.0.weight' in name:
+                    first_layer_l1 += torch.sum(torch.abs(param))
+
+            # Combined loss with L1 penalty
+            g_p_recon_loss = g_p_recon_loss + l1_lambda * first_layer_l1
+
 
             # Backward and optimize
             g_p_recon_loss.backward()
@@ -176,9 +191,10 @@ def run_full_pipeline():
     """
     Objective function for Optuna that uses early stopping
     """
-    model = gpatlas.GP_net(
+    model = gpatlas.GP_net_btl(
     n_loci=n_loci,
     latent_space_g=latent_space_g,
+    latent_space_g1=latent_space_g1,
     n_pheno=n_phen,
     )
 
