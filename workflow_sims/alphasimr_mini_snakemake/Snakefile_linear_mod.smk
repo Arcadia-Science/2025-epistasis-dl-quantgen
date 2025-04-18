@@ -1,21 +1,29 @@
 
-QTL_N = [10, 20, 30, 40, 50, 100, 200, 300, 400, 500, 600]
-SAMPLE_SIZE = [1000, 10000, 100000]
+QTL_N = [10, 20, 30, 40, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+SAMPLE_SIZE = [1000, 10000, 100000, 1000000]
 
 VALID_COMBINATIONS = [
     # combinations
     {"qtl_n": 100, "sample_size": 10000},
     {"qtl_n": 200, "sample_size": 10000},
     {"qtl_n": 300, "sample_size": 10000},
-    #{"qtl_n": 400, "sample_size": 10000},
-    #{"qtl_n": 500, "sample_size": 10000},
-    #{"qtl_n": 600, "sample_size": 10000},
+    {"qtl_n": 400, "sample_size": 10000},
+    {"qtl_n": 500, "sample_size": 10000},
+    {"qtl_n": 600, "sample_size": 10000},
 
-    #{"qtl_n": 200, "sample_size": 100000},
-    #{"qtl_n": 300, "sample_size": 100000},
-    #{"qtl_n": 400, "sample_size": 100000},
-    #{"qtl_n": 500, "sample_size": 100000},
-    #{"qtl_n": 600, "sample_size": 100000},
+    {"qtl_n": 200, "sample_size": 100000},
+    {"qtl_n": 300, "sample_size": 100000},
+    {"qtl_n": 400, "sample_size": 100000},
+    {"qtl_n": 500, "sample_size": 100000},
+    {"qtl_n": 600, "sample_size": 100000},
+    {"qtl_n": 700, "sample_size": 100000},
+
+    {"qtl_n": 500, "sample_size": 1000000},
+    {"qtl_n": 600, "sample_size": 1000000},
+    {"qtl_n": 700, "sample_size": 1000000},
+    {"qtl_n": 800, "sample_size": 1000000},
+    {"qtl_n": 900, "sample_size": 1000000},
+    {"qtl_n": 1000, "sample_size": 1000000},
 
     {"qtl_n": 10, "sample_size": 1000},
     {"qtl_n": 20, "sample_size": 1000},
@@ -25,6 +33,7 @@ VALID_COMBINATIONS = [
     {"qtl_n": 100, "sample_size": 1000},
     {"qtl_n": 200, "sample_size": 1000},
     {"qtl_n": 300, "sample_size": 1000},
+
     ]
 
 def get_valid_outputs(pattern):
