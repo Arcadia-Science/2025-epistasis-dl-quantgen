@@ -24,11 +24,11 @@ from datetime import datetime
 
 #variables
 n_phen=2
-n_loci = 1000
+n_loci = 2000
 n_alleles = 2
 
 latent_space_g = 4096
-latent_space_g1 = 300
+latent_space_g1 = 4096
 
 EPS = 1e-15
 
@@ -36,8 +36,8 @@ EPS = 1e-15
 batch_size = 128
 num_workers = 3
 
-base_file_name = 'test_sim_qhaplo_2k_500sites_100qtl_Ve0_'
-base_file_name_out = 'experiments/test_sim_qhaplo_2k_500sites_100qtl_Ve0_gpnet'
+base_file_name = 'test_sim_qhaplo_10k_1ksites_100qtl_Ve0_'
+base_file_name_out = 'experiments/test_sim_qhaplo_10k_1ksites_100qtl_Ve0_gpnet_vanilla'
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -191,7 +191,7 @@ def run_full_pipeline():
     """
     Objective function for Optuna that uses early stopping
     """
-    model = gpatlas.GP_net_btl(
+    model = gpatlas.GP_net(
     n_loci=n_loci,
     latent_space_g=latent_space_g,
     latent_space_g1=latent_space_g1,
