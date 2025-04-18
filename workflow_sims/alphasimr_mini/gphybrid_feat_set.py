@@ -27,7 +27,7 @@ batch_size = 128
 num_workers = 3
 
 base_file_name = 'test_sim_qhaplo_10k_1ksites_100qtl_Ve0_'
-base_file_name_out = 'experiments/test_sim_qhaplo_10k_1ksites_100qtl_Ve0_FEATURE_SELN.csv'
+base_file_name_out = 'experiments/test_sim_qhaplo_10k_1ksites_100qtl_Ve0_HYBRID_FEATURE_SELN.csv'
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -51,6 +51,146 @@ class gplinear_kl(nn.Module):
 
     def forward(self, x):
         return self.linear(x)
+
+##########################################################################################
+##########################################################################################
+class HybridSkipModel(nn.Module):
+    """
+    Hybrid model for genomic prediction:
+    - Selected features go through the MLP path
+    - All features go through a linear skip connection
+
+    Args:
+        n_loci: Total number of loci/features
+        selected_indices: Indices of informative features for non-linear processing
+        latent_space_g: Hidden layer size for MLP
+        n_pheno: Number of phenotypes to predict
+    """
+    def __init__(self, n_loci, selected_indices, latent_space_g, n_pheno):
+        super().__init__()
+
+        # Store feature indices
+        self.selected_indices = selected_indices
+
+        # MLP for selected features
+        self.mlp = nn.Sequential(
+            nn.Linear(len(selected_indices), latent_space_g),
+            nn.BatchNorm1d(latent_space_g, momentum=0.8),
+            nn.LeakyReLU(0.01, inplace=True),
+
+            nn.Linear(latent_space_g, latent_space_g),
+            nn.BatchNorm1d(latent_space_g, momentum=0.8),
+            nn.LeakyReLU(0.01, inplace=True),
+
+            nn.Linear(latent_space_g, n_pheno)
+        )
+
+        # Linear layer for all features
+        self.linear = nn.Linear(n_loci, n_pheno)
+
+        # Initialize weights
+        self._init_weights()
+
+    def _init_weights(self):
+        # Initialize MLP weights
+        for m in self.mlp.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_normal_(m.weight)
+                nn.init.zeros_(m.bias)
+
+        # Initialize linear weights for skip connection
+        nn.init.normal_(self.linear.weight, std=0.01)
+        nn.init.zeros_(self.linear.bias)
+
+    def forward(self, x):
+        # Extract selected features for the MLP path
+        x_selected = torch.index_select(x, 1, torch.tensor(self.selected_indices,
+                                                        device=x.device))
+
+        # Process through MLP
+        mlp_output = self.mlp(x_selected)
+
+        # Process all features through linear layer
+        linear_output = self.linear(x)
+
+        # Combine outputs
+        return mlp_output + linear_output
+
+###################################
+
+class HybridSkipModelPruned(nn.Module):
+    """
+    Hybrid model for genomic prediction:
+    - Selected features go through the MLP path ONLY
+    - Unselected features go through a linear skip connection ONLY
+
+    Args:
+        n_loci: Total number of loci/features
+        selected_indices: Indices of informative features for non-linear processing
+        latent_space_g: Hidden layer size for MLP
+        n_pheno: Number of phenotypes to predict
+    """
+    def __init__(self, n_loci, selected_indices, latent_space_g, n_pheno):
+        super().__init__()
+
+        # Store feature indices
+        self.selected_indices = selected_indices
+
+        # Create tensor of all indices
+        all_indices = set(range(n_loci))
+
+        # Create tensor of unselected indices
+        self.unselected_indices = list(all_indices - set(selected_indices))
+
+        # MLP for selected features
+        self.mlp = nn.Sequential(
+            nn.Linear(len(selected_indices), latent_space_g),
+            nn.BatchNorm1d(latent_space_g, momentum=0.8),
+            nn.LeakyReLU(0.01, inplace=True),
+
+            nn.Linear(latent_space_g, latent_space_g),
+            nn.BatchNorm1d(latent_space_g, momentum=0.8),
+            nn.LeakyReLU(0.01, inplace=True),
+
+            nn.Linear(latent_space_g, n_pheno)
+        )
+
+        # Linear layer for unselected features only
+        self.linear = nn.Linear(len(self.unselected_indices), n_pheno)
+
+        # Initialize weights
+        self._init_weights()
+
+    def _init_weights(self):
+        # Initialize MLP weights
+        for m in self.mlp.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_normal_(m.weight)
+                nn.init.zeros_(m.bias)
+
+        # Initialize linear weights for skip connection
+        nn.init.normal_(self.linear.weight, std=0.01)
+        nn.init.zeros_(self.linear.bias)
+
+    def forward(self, x):
+        # Create tensors for device compatibility
+        selected_indices_tensor = torch.tensor(self.selected_indices, device=x.device)
+        unselected_indices_tensor = torch.tensor(self.unselected_indices, device=x.device)
+
+        # Extract selected features for the MLP path
+        x_selected = torch.index_select(x, 1, selected_indices_tensor)
+
+        # Extract unselected features for the linear path
+        x_unselected = torch.index_select(x, 1, unselected_indices_tensor)
+
+        # Process selected features through MLP
+        mlp_output = self.mlp(x_selected)
+
+        # Process unselected features through linear layer
+        linear_output = self.linear(x_unselected)
+
+        # Combine outputs
+        return mlp_output + linear_output
 
 ##########################################################################################
 ##########################################################################################
@@ -196,16 +336,9 @@ def train_gplinear_lasso(model, train_loader, test_loader,
 ##########################################################################################
 ##########################################################################################
 
-def get_selected_features(model, threshold=1e-4):
+def get_selected_features(model, threshold=1e-4, max_features=None, n_loci=2000):
     """
     Extract the indices of features that have significant weights
-
-    Args:
-        model: Trained linear model
-        threshold: Weight magnitude threshold for significance
-
-    Returns:
-        selected_indices: Indices of selected features
     """
     # Get the first layer weights
     weights = None
@@ -220,12 +353,23 @@ def get_selected_features(model, threshold=1e-4):
     # For each feature (column), calculate the maximum absolute weight
     feature_importance = np.max(np.abs(weights), axis=0)
 
-    # Select features with importance above threshold
-    selected_indices = np.where(feature_importance > threshold)[0]
+    # Sort features by importance
+    sorted_indices = np.argsort(-feature_importance)
+
+    # Select features
+    if max_features is not None:
+        # Limit to top max_features
+        selected_indices = sorted_indices[:max_features]
+    else:
+        # Or select based on threshold
+        selected_indices = np.where(feature_importance > threshold)[0]
+
+    # Ensure indices are within bounds
+    selected_indices = selected_indices[selected_indices < n_loci]
 
     print(f"Selected {len(selected_indices)} features out of {len(feature_importance)}")
 
-    return selected_indices, feature_importance
+    return selected_indices, feature_importance[selected_indices]
 
 ##########################################################################################
 ##########################################################################################
@@ -308,7 +452,7 @@ def train_gpnet(model, train_loader, test_loader=None,
                          n_loci=None,
                          n_alleles=2,
                          max_epochs=250,  # Set a generous upper limit
-                         patience=75,      # Number of epochs to wait for improvement
+                         patience=30,      # Number of epochs to wait for improvement
                          min_delta=0.001, # Minimum change to count as improvement
                          learning_rate=0.01,
                          l1_lambda=0, weight_decay=1e-7, device=device):
@@ -461,61 +605,38 @@ def run_lasso_mlp_pipeline(l1_weight=None, feature_threshold=None,
     )
 
     # Limit the number of features if needed
-    if len(selected_indices) > max_selected_features:
+    if max_selected_features and len(selected_indices) > max_selected_features:
         # Sort by importance and take top features
         sorted_indices = np.argsort(-feature_importance)
-        selected_indices = sorted_indices[:max_selected_features]
+        selected_indices = selected_indices[sorted_indices[:max_selected_features]]
+        feature_importance = feature_importance[sorted_indices[:max_selected_features]]
         print(f"Limited selection to top {max_selected_features} features")
 
-    # Create new datasets with only selected features
-    def create_filtered_loader(original_loader, selected_indices):
-        filtered_data = []
-        filtered_labels = []
+    # Convert selected_indices to a list of integers
+    selected_indices = selected_indices.tolist()
+    print(f"Selected {len(selected_indices)} features")
+    print(f"Max index in selected indices: {max(selected_indices)}")
 
-        for phens, gens in original_loader:
-            # Select only the important features
-            filtered_gens = gens[:, selected_indices]
-            filtered_data.append(filtered_gens)
-            filtered_labels.append(phens)
-
-        # Concatenate all batches
-        filtered_data = torch.cat(filtered_data, dim=0)
-        filtered_labels = torch.cat(filtered_labels, dim=0)
-
-        # Create new dataset and loader
-        filtered_dataset = TensorDataset(filtered_labels, filtered_data)
-        filtered_loader = DataLoader(
-            filtered_dataset,
-            batch_size=original_loader.batch_size,
-            shuffle=True
-        )
-
-        return filtered_loader
-
-    # Create filtered loaders
-    filtered_train_loader = create_filtered_loader(train_loader_gp, selected_indices)
-    filtered_test_loader = create_filtered_loader(test_loader_gp, selected_indices)
-
-    # Stage 3: Train MLP on selected features
-    mlp_model = gpatlas.GP_net(
-        n_loci=len(selected_indices),
-        latent_space_g1=mlp_hidden_size,
+    # Stage 3: Train MLP on original data but with special handling of selected features
+    mlp_model = HybridSkipModelPruned(
+        n_loci=n_loci,
+        selected_indices=selected_indices,
         latent_space_g=mlp_hidden_size,
         n_pheno=n_phen
     ).to(device)
 
     mlp_model, best_loss_mlp, history_mlp = train_gpnet(
         model=mlp_model,
-        train_loader=filtered_train_loader,
-        test_loader=filtered_test_loader,
-        n_loci=len(selected_indices),
+        train_loader=train_loader_gp,  # Use original loader with all features
+        test_loader=test_loader_gp,    # Use original loader with all features
+        n_loci=n_loci,                 # Use original number of loci
         device=device,
-        l1_lambda=0  # No need for L1 here as we've already done feature selection
+        l1_lambda=0
     )
 
     # Evaluate both models
     linear_corr = evaluate_model(linear_model, test_loader_gp)
-    mlp_corr = evaluate_model(mlp_model, filtered_test_loader)
+    mlp_corr = evaluate_model(mlp_model, test_loader_gp)
 
     print(f"Linear model correlation: {linear_corr:.4f}")
     print(f"MLP model correlation: {mlp_corr:.4f}")
