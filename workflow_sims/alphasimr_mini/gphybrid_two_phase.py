@@ -13,7 +13,7 @@ import pandas as pd
 import seaborn as sns
 import random
 
-random.seed(42)
+#random.seed(42)
 
 #variables
 n_phen=2
@@ -749,9 +749,9 @@ def run_lasso_mlp_pipeline(l1_weight=None, feature_threshold=None,
 def main():
     results = run_lasso_mlp_pipeline(
         l1_weight=0.001,               # L1 regularization strength
-        feature_threshold=0.025,       # Threshold for feature selection
+        feature_threshold=0.03,       # Threshold for feature selection
         mlp_hidden_size=4096,           # Size of hidden layers in MLP
-        max_selected_features=400     # Maximum number of features to use
+        #max_selected_features=400     # Maximum number of features to use
     )
 
 if __name__ == "__main__":
