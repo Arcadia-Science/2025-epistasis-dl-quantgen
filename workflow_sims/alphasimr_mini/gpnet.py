@@ -24,7 +24,7 @@ from datetime import datetime
 
 #variables
 n_phen=2
-n_loci = 2000
+n_loci = 10000
 n_alleles = 2
 
 latent_space_g = 4096
@@ -36,8 +36,8 @@ EPS = 1e-15
 batch_size = 128
 num_workers = 3
 
-base_file_name = 'test_sim_qhaplo_10k_1ksites_100qtl_Ve0_'
-base_file_name_out = 'experiments/test_sim_qhaplo_10k_1ksites_100qtl_Ve0_gpnet_vanilla'
+base_file_name = 'test_sim_qhaplo_1000k_5kqtl_Ve0_'
+base_file_name_out = 'experiments/test_sim_qhaplo_1000k_5kqtl_Ve0_gpnet_vanilla'
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

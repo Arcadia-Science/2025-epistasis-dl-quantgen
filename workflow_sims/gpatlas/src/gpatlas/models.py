@@ -354,7 +354,7 @@ class GP_net(nn.Module):
         latent_space_g: geno hidden layer size
         n_pheno: number of phenotypes to output/predict
     """
-    def __init__(self, n_loci, latent_space_g1, latent_space_g, n_pheno):
+    def __init__(self, n_loci, latent_space_g, n_pheno, latent_space_g1=None):
         super().__init__()
         batchnorm_momentum = 0.8
 
