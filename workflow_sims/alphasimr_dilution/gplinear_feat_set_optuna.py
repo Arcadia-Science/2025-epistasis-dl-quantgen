@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from snakemake.script import snakemake
 
 import gpatlas
 import torch
@@ -16,19 +17,23 @@ import optuna
 
 random.seed(42)
 
+#snakemake input
+sample_size = snakemake.params['sample_size']
+qtl_n = snakemake.params['qtl_n']
+marker_n = snakemake.params['marker_n']
+
+sim_name = f'qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n'
+base_file_name = f'gpnet/input_data/{sim_name}_'
+
 #variables
 n_phen=2
-n_loci = 2000
+n_loci = int(marker_n) * 2
 n_alleles = 2
 EPS = 1e-15
-
+n_trials_optuna = 10
 
 batch_size = 128
 num_workers = 3
-
-base_file_name = 'gpnet/input_data/qhaplo_100qtl_1000marker_10000n_'
-base_file_name_out = 'qhaplo_100qtl_1000marker_100000n'
-
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
@@ -71,7 +76,7 @@ def laplace_regularization(model):
 def train_gplinear_lasso(model, train_loader, test_loader,
           l1_weight=0.01,  # Renamed from kl_weight to l1_weight
           learning_rate=0.1,
-          max_epochs=3,
+          max_epochs=150,
           min_delta=0.001,
           patience=20,
           feature_selection_threshold=1e-4,  # Threshold for considering a weight significant
@@ -282,8 +287,8 @@ def evaluate_model(model, test_loader):
 def train_gpnet(model, train_loader, test_loader=None,
                          n_loci=None,
                          n_alleles=2,
-                         max_epochs=5,  # Set a generous upper limit
-                         patience=50,      # Number of epochs to wait for improvement
+                         max_epochs=150,  # Set a generous upper limit
+                         patience=25,      # Number of epochs to wait for improvement
                          min_delta=0.001, # Minimum change to count as improvement
                          learning_rate=0.01,
                          l1_lambda=0, weight_decay=1e-7, device=device):
@@ -566,7 +571,7 @@ def main():
 
         # Save results to CSV
         results_df = pd.DataFrame(trial_results)
-        results_df.to_csv(f'gphybrid/optuna/{base_file_name_out}_optuna.csv', index=False)
+        results_df.to_csv(f'gphybrid/optuna/{sim_name}_optuna.csv', index=False)
 
         # Reload best model with the optimized hyperparameters
         print("\nReloading best model with optimized hyperparameters...")
@@ -586,9 +591,9 @@ def main():
         linear_corr_pruned = evaluate_model(linear_model_pruned, filtered_test_loader)
         mlp_corr = evaluate_model(mlp_model, filtered_test_loader)
 
-        results_linear_corr = f'gphybrid/{base_file_name_out}_linear_correlations.csv'
-        results_linear_corr_pruned = f'gphybrid/{base_file_name_out}_linear_pruned_correlations.csv'
-        results_mlp_corr = f'gphybrid/{base_file_name_out}_mlp_pruned_correlations.csv'
+        results_linear_corr = f'gphybrid/{sim_name}_linear_correlations.csv'
+        results_linear_corr_pruned = f'gphybrid/{sim_name}_linear_pruned_correlations.csv'
+        results_mlp_corr = f'gphybrid/{sim_name}_mlp_pruned_correlations.csv'
 
         linear_corr.to_csv(results_linear_corr, index=False)
         linear_corr_pruned.to_csv(results_linear_corr_pruned, index=False)
