@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import random
+import optuna
 
 random.seed(42)
 
@@ -70,7 +71,7 @@ def laplace_regularization(model):
 def train_gplinear_lasso(model, train_loader, test_loader,
           l1_weight=0.01,  # Renamed from kl_weight to l1_weight
           learning_rate=0.1,
-          max_epochs=150,
+          max_epochs=3,
           min_delta=0.001,
           patience=20,
           feature_selection_threshold=1e-4,  # Threshold for considering a weight significant
@@ -281,7 +282,7 @@ def evaluate_model(model, test_loader):
 def train_gpnet(model, train_loader, test_loader=None,
                          n_loci=None,
                          n_alleles=2,
-                         max_epochs=200,  # Set a generous upper limit
+                         max_epochs=5,  # Set a generous upper limit
                          patience=50,      # Number of epochs to wait for improvement
                          min_delta=0.001, # Minimum change to count as improvement
                          learning_rate=0.01,
@@ -502,32 +503,96 @@ def run_lasso_mlp_pipeline(linear_model=None,l1_weight=None, feature_threshold=N
         l1_lambda=0  # No need for L1 here as we've already done feature selection
     )
 
-    # Evaluate both models and write results
-    linear_corr = evaluate_model(linear_model, test_loader_gp)
-    linear_corr_pruned = evaluate_model(linear_model_pruned, filtered_test_loader)
-    mlp_corr = evaluate_model(mlp_model, filtered_test_loader)
-
-    results_linear_corr = f'gphybrid/{base_file_name_out}_linear_correlations.csv'
-    results_linear_corr_pruned = f'gphybrid/{base_file_name_out}_linear_pruned_correlations.csv'
-    results_mlp_corr = f'gphybrid/{base_file_name_out}_mlp_pruned_correlations.csv'
-
-    linear_corr.to_csv(results_linear_corr, index=False)
-    linear_corr_pruned.to_csv(results_linear_corr_pruned, index=False)
-    mlp_corr.to_csv(results_mlp_corr, index=False)
+    return linear_model_pruned, mlp_model, filtered_test_loader, best_loss_mlp
 
 #####################################################################################################################
 #####################################################################################################################
+#pretrain linear model globally
+linear_model = pretrain_lasso_model(l1_weight=0.001)# L1 regularization strength
 
-def main():
-    linear_model = pretrain_lasso_model(l1_weight=0.001)# L1 regularization strength
+def objective(trial: optuna.Trial,
+             device: torch.device) -> float:
+    """
+    Objective function for Optuna that uses early stopping
+    """
+    # Hyperparameters to optimize
+    #predefined_feat_sel_amounts = [100, 200, 300, 400, 500, 750, 1000]
+    feat_threshold = trial.suggest_int('feat_threshold', 100,1000)
 
-    results = run_lasso_mlp_pipeline(
+    _, _, _, best_loss_mlp = run_lasso_mlp_pipeline(
         linear_model=linear_model,
         l1_weight=0.001,
         feature_threshold=0.03,       # Threshold for feature selection
         mlp_hidden_size=4096,           # Size of hidden layers in MLP
-        max_selected_features=400     # Maximum number of features to use
+        max_selected_features=feat_threshold     # Maximum number of features to use
     )
+    return best_loss_mlp
+
+
+def main():
+    # Create study
+    study = optuna.create_study(direction='minimize')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    # Run optimization
+    n_trials = n_trials_optuna
+
+    #linear_model = pretrain_lasso_model(l1_weight=0.001)# L1 regularization strength
+
+    try:
+        # Create a list to store results as we go
+        trial_results = []
+
+        study.optimize(
+            lambda trial: objective(
+                trial=trial,
+                device=device
+            ),
+            n_trials=n_trials,
+            callbacks=[
+                lambda study, trial: trial_results.append({
+                    'trial_number': trial.number,
+                    'params': trial.params,
+                    'value': trial.value,
+                    'state': trial.state.name
+                })
+            ]
+        )
+
+    finally:
+        print("\nStudy completed!")
+        print(f"Best parameters found: {study.best_params}")
+        print(f"Best value achieved: {study.best_value}")
+
+        # Save results to CSV
+        results_df = pd.DataFrame(trial_results)
+        results_df.to_csv(f'gphybrid/optuna/{base_file_name_out}_optuna.csv', index=False)
+
+        # Reload best model with the optimized hyperparameters
+        print("\nReloading best model with optimized hyperparameters...")
+        best_predefined_feat_sel_amounts = study.best_params['feat_threshold']
+
+        # Train the best models
+        linear_model_pruned, mlp_model, filtered_test_loader, _ = run_lasso_mlp_pipeline(
+            linear_model=linear_model,
+            l1_weight=0.001,
+            feature_threshold=0.03,       # Threshold for feature selection
+            mlp_hidden_size=4096,           # Size of hidden layers in MLP
+            max_selected_features=best_predefined_feat_sel_amounts     # Maximum number of features to use
+        )
+
+        # Evaluate both models and write results
+        linear_corr = evaluate_model(linear_model, test_loader_gp)
+        linear_corr_pruned = evaluate_model(linear_model_pruned, filtered_test_loader)
+        mlp_corr = evaluate_model(mlp_model, filtered_test_loader)
+
+        results_linear_corr = f'gphybrid/{base_file_name_out}_linear_correlations.csv'
+        results_linear_corr_pruned = f'gphybrid/{base_file_name_out}_linear_pruned_correlations.csv'
+        results_mlp_corr = f'gphybrid/{base_file_name_out}_mlp_pruned_correlations.csv'
+
+        linear_corr.to_csv(results_linear_corr, index=False)
+        linear_corr_pruned.to_csv(results_linear_corr_pruned, index=False)
+        mlp_corr.to_csv(results_mlp_corr, index=False)
 
 if __name__ == "__main__":
     main()
