@@ -26,7 +26,7 @@ batch_size = 128
 num_workers = 3
 
 base_file_name = 'gpnet/input_data/qhaplo_100qtl_1000marker_10000n_'
-base_file_name_out = 'gphybrid/qhaplo_100qtl_1000marker_100000n_featseln_cutoff.csv'
+base_file_name_out = 'qhaplo_100qtl_1000marker_100000n'
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -275,46 +275,6 @@ def evaluate_model(model, test_loader):
 
     return results_df
 
-
-def save_feature_selection_info(model, threshold=1e-4, file_name=None):
-    """
-    Save feature selection information to a CSV file
-
-    Args:
-        model: Trained linear model
-        threshold: Weight magnitude threshold for significance
-        file_name: Output CSV file name
-    """
-    # Get the first layer weights
-    weights = None
-    for name, param in model.named_parameters():
-        if 'weight' in name:
-            weights = param.detach().cpu().numpy()
-            break
-
-    if weights is None:
-        raise ValueError("Could not find weight parameters in the model")
-
-    # For each feature (column), calculate the maximum absolute weight
-    feature_importance = np.max(np.abs(weights), axis=0)
-
-    # Create a DataFrame
-    import pandas as pd
-
-    features_df = pd.DataFrame({
-        'feature_index': range(len(feature_importance)),
-        'importance': feature_importance,
-        'selected': feature_importance > threshold
-    })
-
-    # Sort by importance (descending)
-    features_df = features_df.sort_values('importance', ascending=False)
-
-    # Save to CSV
-    features_df.to_csv(file_name, index=False)
-    print(f"Feature selection info saved to {file_name}")
-
-    return features_df
 ##########################################################################################
 ##########################################################################################
 
@@ -445,7 +405,7 @@ def train_gpnet(model, train_loader, test_loader=None,
 ##########################################################################################
 def pretrain_lasso_model(l1_weight=None):
 
-        # Stage 1: Train linear model with L1 regularization
+    #Train linear model with L1 regularization
     linear_model = gplinear_kl(
         n_loci=n_loci,
         n_phen=n_phen,
@@ -468,10 +428,7 @@ def run_lasso_mlp_pipeline(linear_model=None,l1_weight=None, feature_threshold=N
     2. Train an MLP on the selected features
     """
 
-    save_feature_selection_info(linear_model, threshold=1e-4,
-                                            file_name=base_file_name_out)
-
-    # Stage 2: Feature selection
+    # Stage 1: Feature selection
     selected_indices, feature_importance = get_selected_features(
         linear_model, threshold=feature_threshold
     )
@@ -512,7 +469,7 @@ def run_lasso_mlp_pipeline(linear_model=None,l1_weight=None, feature_threshold=N
     filtered_train_loader = create_filtered_loader(train_loader_gp, selected_indices)
     filtered_test_loader = create_filtered_loader(test_loader_gp, selected_indices)
 
-    # Stage 3: Train linear then MLP models on selected features only
+    # Stage 2: Train linear then MLP models on selected features only
     #linear
     linear_model_pruned = gplinear_kl(
         n_loci=len(selected_indices),
@@ -550,23 +507,13 @@ def run_lasso_mlp_pipeline(linear_model=None,l1_weight=None, feature_threshold=N
     linear_corr_pruned = evaluate_model(linear_model_pruned, filtered_test_loader)
     mlp_corr = evaluate_model(mlp_model, filtered_test_loader)
 
-    results_linear_corr = f'gphybrid/{base_file_name}_phenotype_correlations.csv'
-    results_linear_corr_pruned = f'gphybrid/{base_file_name}_phenotype_correlations.csv'
-    results_mlp_corr = f'gphybrid/{base_file_name}_phenotype_correlations.csv'
+    results_linear_corr = f'gphybrid/{base_file_name_out}_linear_correlations.csv'
+    results_linear_corr_pruned = f'gphybrid/{base_file_name_out}_linear_pruned_correlations.csv'
+    results_mlp_corr = f'gphybrid/{base_file_name_out}_mlp_pruned_correlations.csv'
 
     linear_corr.to_csv(results_linear_corr, index=False)
     linear_corr_pruned.to_csv(results_linear_corr_pruned, index=False)
     mlp_corr.to_csv(results_mlp_corr, index=False)
-
-    #print(f"Linear model correlation: {linear_corr.head()}")
-    #print(f"Linear model pruned correlation: {linear_corr_pruned.head()}")
-    #print(f"MLP model correlation: {mlp_corr.head()}")
-
-
-##########################################################################################
-##########################################################################################
-
-
 
 #####################################################################################################################
 #####################################################################################################################
