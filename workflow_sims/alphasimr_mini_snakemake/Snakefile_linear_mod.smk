@@ -51,6 +51,7 @@ def get_valid_outputs(pattern):
 rule all:
    input:
         get_valid_outputs('linear_model/qhaplo_{qtl_n}qtl_{sample_size}n_scklrr_corr_summary.txt'),
+        #get_valid_outputs('linear_model/qhaplo_{qtl_n}qtl_{sample_size}n_rrBLUP_corr_summary.txt'),
         #get_valid_outputs('linear_model/qhaplo_{qtl_n}qtl_{sample_size}n_scklrr_epi_corr_summary.txt')
 
 #fit rrBLUP approximation through sci-kit learn ridge regression (cross validated)

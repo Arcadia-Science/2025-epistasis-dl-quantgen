@@ -31,7 +31,7 @@ SP = SimParam$new(founderGenomes)
 SP$addTraitAE(
   nQtlPerChr=n_qtl, # Carefully tuned with meanDD
   mean=0, # ~1981 value from Eras data
-  var=3, # Chosen for appropriate rate of gain
+  var=1, # Chosen for appropriate rate of gain
   relAA=0, # relative Vaa in a diploid organism with 50/50 allele freq
   useVarA = F
 )
@@ -39,20 +39,44 @@ SP$addTraitAE(
 SP$addTraitAE(
   nQtlPerChr=n_qtl, # Carefully tuned with meanDD
   mean=0, # ~1981 value from Eras data
-  var=3, # Chosen for appropriate rate of gain
+  var=1, # Chosen for appropriate rate of gain
+  relAA=0.1, # relative Vaa in a diploid organism with 50/50 allele freq
+  useVarA = F
+)
+
+SP$addTraitAE(
+  nQtlPerChr=n_qtl, # Carefully tuned with meanDD
+  mean=0, # ~1981 value from Eras data
+  var=1, # Chosen for appropriate rate of gain
+  relAA=0.5, # relative Vaa in a diploid organism with 50/50 allele freq
+  useVarA = F
+)
+
+SP$addTraitAE(
+  nQtlPerChr=n_qtl, # Carefully tuned with meanDD
+  mean=0, # ~1981 value from Eras data
+  var=1, # Chosen for appropriate rate of gain
   relAA=1, # relative Vaa in a diploid organism with 50/50 allele freq
   useVarA = F
 )
 
+SP$addTraitAE(
+  nQtlPerChr=n_qtl, # Carefully tuned with meanDD
+  mean=0, # ~1981 value from Eras data
+  var=1, # Chosen for appropriate rate of gain
+  relAA=3, # relative Vaa in a diploid organism with 50/50 allele freq
+  useVarA = F
+)
 #initialize pop to be
 pop = newPop(founderGenomes)
 pop = setPheno(pop,H2 = c(0.999))
 
-varA(pop)
-varAA(pop)
-varG(pop)/varP(pop)
-varP(pop)
-varAA(pop)/varA(pop)
+#varA(pop)
+#varAA(pop)
+#varG(pop)/varP(pop)
+#varP(pop)
+#varAA(pop)/varA(pop)
+print('h2')
 varA(pop)/varP(pop)
 
 #extract phenotypes
