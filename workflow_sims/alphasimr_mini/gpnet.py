@@ -27,8 +27,10 @@ n_phen=2
 n_loci = 10000
 n_alleles = 2
 
-latent_space_g = 4096
-latent_space_g1 = 4096
+#latent_space_g = 4096
+#latent_space_g1 = 4096
+latent_space_g = 8192
+latent_space_g1 = 8192
 
 EPS = 1e-15
 
@@ -37,7 +39,7 @@ batch_size = 128
 num_workers = 3
 
 base_file_name = 'test_sim_qhaplo_1000k_5kqtl_Ve0_'
-base_file_name_out = 'experiments/test_sim_qhaplo_1000k_5kqtl_Ve0_gpnet_vanilla'
+base_file_name_out = 'experiments/test_sim_qhaplo_1000k_5kqtl_Ve0_gpnet_vanilla_8092'
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
