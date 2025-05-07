@@ -27,7 +27,7 @@ base_file_name = f'gpnet/input_data/{sim_name}_'
 n_trials_optuna = 7
 n_loci = int(qtl_n) * 2
 n_alleles = 2
-n_phen=2
+n_phen=5
 EPS = 1e-15
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -268,7 +268,7 @@ def main():
         best_model = gpatlas.gplinear_kl(
             n_loci=n_loci,
             n_phen=n_phen,
-        ).to(device) 
+        ).to(device)
 
         # Train the best model
         best_model, best_loss, _ = train_gplinear(

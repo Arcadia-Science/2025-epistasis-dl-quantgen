@@ -27,7 +27,7 @@ base_file_name = f'gpnet/input_data/{sim_name}_'
 
 
 #variables
-n_phen=2
+n_phen=5
 n_loci = int(qtl_n) * 2
 n_alleles = 2
 latent_space_g = 3500
