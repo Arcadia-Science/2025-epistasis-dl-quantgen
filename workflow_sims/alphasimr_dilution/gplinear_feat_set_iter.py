@@ -18,15 +18,15 @@ random.seed(42)
 
 #variables
 n_phen=2
-n_loci = 2000
+n_loci = 5000
 n_alleles = 2
 EPS = 1e-15
 
 batch_size = 128
 num_workers = 3
 
-base_file_name = 'gpnet/input_data/qhaplo_100qtl_1000marker_10000n_'
-base_file_name_out = 'qhaplo_100qtl_1000marker_100000n'
+base_file_name = 'gpnet/input_data/qhaplo_100qtl_2500marker_10000n_'
+base_file_name_out = 'qhaplo_100qtl_2500marker_100000n'
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
