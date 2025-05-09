@@ -2,42 +2,29 @@
 MARKER_N = [100, 250, 500, 750, 1000, 2500, 5000, 10000]
 QTL_N = [100]
 SAMPLE_SIZE = [10000]
-
+REP = list(range(1, 6))  # 5 replicates, adjust as needed
 
 rule all:
    input:
-        expand("linear_model/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_scklrr_corr_summary.txt", qtl_n=QTL_N, marker_n=MARKER_N, sample_size=SAMPLE_SIZE )
+        expand("linear_model/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_scklrr_corr_summary.txt",
+               qtl_n=QTL_N, marker_n=MARKER_N, sample_size=SAMPLE_SIZE, rep=REP)
         #get_valid_outputs('linear_model/qhaplo_{qtl_n}qtl_{sample_size}n_scklrr_epi_corr_summary.txt')
 
 #fit rrBLUP approximation through sci-kit learn ridge regression (cross validated)
 rule run_python_rrBLUP:
     conda: 'gpatlas'
     input:
-        input_pheno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_p.txt',
-        input_geno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_g.txt',
-        loci_effects = 'alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_eff.txt'
+        input_pheno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_p.txt',
+        input_geno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_g.txt',
+        loci_effects = 'alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_eff.txt'
     output:
-        correlation_summary = 'linear_model/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_scklrr_corr_summary.txt',
+        correlation_summary = 'linear_model/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_scklrr_corr_summary.txt',
     resources:
         mem_mb=25000
+    params:
+        rep = "{rep}"
     script:
         'fit_ridge_cv.py'
-
-
-#fit rrBLUP approximation through sci-kit learn ridge regression (cross validated)
-rule run_python_rrBLUP_epistatic:
-    conda: 'gpatlas'
-    input:
-        input_pheno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_p.txt',
-        input_geno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_g.txt',
-        loci_effects = 'alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_eff.txt'
-    output:
-        correlation_summary = 'linear_model/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_scklrr_epi_corr_summary.txt',
-    resources:
-        mem_mb=25000
-    script:
-        'fit_ridge_epistasis.py'
-
 
 """
 #fit rrBLUP (deterministically)

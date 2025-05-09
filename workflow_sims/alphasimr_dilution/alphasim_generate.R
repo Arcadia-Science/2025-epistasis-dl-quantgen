@@ -3,23 +3,18 @@ library(dplyr)
 library(ggplot2)
 library(reshape2)
 
-set.seed(1)
-
-
 n_qtl <- as.numeric(snakemake@params[['qtl_n']])
 n_markers <- as.numeric(snakemake@params[['marker_n']])
 n_ind <- as.numeric(snakemake@params[['sample_size']])
+rep <- as.numeric(snakemake@params[['rep']])
 
 output_file_pheno <- snakemake@output[["output_pheno"]]
 output_file_geno <- snakemake@output[["output_geno"]]
 output_file_eff <- snakemake@output[["loci_effects"]]
 
-
-
+set.seed(rep)
 
 founderGenomes = quickHaplo(nInd=n_ind, nChr=1, segSites=n_markers, ploidy=1)
-
-
 
 #############################################################
 #############################################################
@@ -49,12 +44,12 @@ SP$addTraitAE(
 pop = newPop(founderGenomes)
 pop = setPheno(pop,H2 = c(0.999))
 
-varA(pop)
-varAA(pop)
-varG(pop)/varP(pop)
-varP(pop)
-varAA(pop)/varA(pop)
-varA(pop)/varP(pop)
+#varA(pop)
+#varAA(pop)
+#varG(pop)/varP(pop)
+#varP(pop)
+#varAA(pop)/varA(pop)
+#varA(pop)/varP(pop)
 
 #extract phenotypes
 pheno = pheno(pop)

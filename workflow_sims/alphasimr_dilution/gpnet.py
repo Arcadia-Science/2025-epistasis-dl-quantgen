@@ -21,8 +21,10 @@ import pandas as pd
 sample_size = snakemake.params['sample_size']
 qtl_n = snakemake.params['qtl_n']
 marker_n = snakemake.params['marker_n']
+rep = snakemake.params['rep']
 
-sim_name = f'qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n'
+
+sim_name = f'qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}'
 base_file_name = f'gpnet/input_data/{sim_name}_'
 
 
