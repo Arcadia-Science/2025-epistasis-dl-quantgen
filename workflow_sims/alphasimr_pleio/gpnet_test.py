@@ -22,13 +22,13 @@ num_workers = 3
 sample_size = 10000
 qtl_n = 200
 trait_n = 10
-pleio_strength = 0.5
+pleio_strength = 0
 
-sim_name = f'qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait'
-base_file_name = f'input_data/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_'
+sim_name = f'qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_0.5H2_cup'
+base_file_name = f'input_data/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_0.5H2_cup_'
 
 n_phen = trait_n + 2
-n_loci = int(qtl_n) * 2
+n_loci = 200 * 2
 n_alleles = 2
 EPS = 1e-15
 

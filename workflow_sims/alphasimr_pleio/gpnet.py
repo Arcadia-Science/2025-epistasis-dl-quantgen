@@ -185,7 +185,7 @@ def run_full_pipeline():
     Objective function for Optuna that uses early stopping
     """
     learning_rate = 0.01
-    hidden_layer_size = 3500
+    hidden_layer_size = 4096
 
     model = gpatlas.GP_net(
     n_loci=n_loci,
