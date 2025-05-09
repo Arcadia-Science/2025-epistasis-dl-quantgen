@@ -5,12 +5,14 @@ library(reshape2)
 
 set.seed(1)
 
-n_sites <- 100
-n_qtl <- 100
+n_sites <- 200
+n_qtl <- 200
+pleio_strength = 0.75
+trait_n = 10
 
 founderGenomes = quickHaplo(nInd=10000, nChr=1, segSites=n_sites, ploidy=1)
 
-base_out = 'alphasim_out/test_sim_qhaplo_10k_100sites_Ve0'
+base_out = 'alphasim_out/qhaplo_200qtl_10000n_0.75pleio_10trait_0.5H2_cup'
 p_out = paste0(base_out, '_p.txt')
 g_out = paste0(base_out, '_g.txt')
 eff_out = paste0(base_out, '_eff.txt')
@@ -40,16 +42,36 @@ SP$addTraitAE(
   useVarA = F
 )
 
+
+#for(i in c(1:10)){
+#SP$addTraitAE(
+#  nQtlPerChr=n_qtl, # Carefully tuned with meanDD
+#  mean=0, # ~1981 value from Eras data
+#  var=1, # Chosen for appropriate rate of gain
+#  relAA=1, # relative Vaa in a diploid organism with 50/50 allele freq
+#  useVarA = F
+#)
+#}
+
+G = (1-pleio_strength)*diag(trait_n)+pleio_strength
+SP$addTraitAE(nQtlPerChr = n_qtl,
+              mean = rep(0, trait_n),
+              var = rep(1, trait_n),
+              relAA = rep(1, trait_n),
+              useVarA = F,
+              corA=G,
+              corAA = G)
+
 #initialize pop to be
 pop = newPop(founderGenomes)
-pop = setPheno(pop,H2 = c(0.999))
+pop = setPheno(pop,H2 = c(0.5))
 
-varA(pop)
-varAA(pop)
-varG(pop)/varP(pop)
+#varA(pop)
+##varAA(pop)
+#varG(pop)/varP(pop)
 varP(pop)
-varAA(pop)/varA(pop)
-varA(pop)/varP(pop)
+#varAA(pop)/varA(pop)
+#varA(pop)/varP(pop)
 
 #extract phenotypes
 pheno = pheno(pop)

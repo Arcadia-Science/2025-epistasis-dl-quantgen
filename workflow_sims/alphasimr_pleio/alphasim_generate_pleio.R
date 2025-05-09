@@ -44,15 +44,29 @@ SP$addTraitAE(
   useVarA = F
 )
 
-#pleiotropic epi traits
-G = (1-pleio_strength)*diag(trait_n)+pleio_strength
-SP$addTraitAE(nQtlPerChr = n_qtl,
-             mean = rep(0, trait_n),
-             var = rep(1, trait_n),
-             relAA = rep(1, trait_n),
-             useVarA = F,
-             corA=G,
-             corAA = G)
+# Generate experimental traits based on pleio_strength
+if (pleio_strength == 0) {
+  # For pleio_strength=0, generate each trait independently through a loop
+  for (i in 1:trait_n) {
+    SP$addTraitAE(
+      nQtlPerChr=n_qtl,
+      mean=0,
+      var=1,
+      relAA=1, # epistatic effects
+      useVarA = F
+    )
+  }
+} else {
+  # For pleio_strength>0, use the correlation matrix method
+  G = (1-pleio_strength)*diag(trait_n)+pleio_strength
+  SP$addTraitAE(nQtlPerChr = n_qtl,
+               mean = rep(0, trait_n),
+               var = rep(1, trait_n),
+               relAA = rep(1, trait_n),
+               useVarA = F,
+               corA=G,
+               corAA = G)
+}
 
 
 #initialize pop to be
@@ -70,6 +84,11 @@ pop = setPheno(pop,H2 = c(0.999))
 pheno = pheno(pop)
 df <- as.data.frame(pullSegSiteHaplo(pop))
 
+print('Done generating sims, params:')
+print(pleio_strength)
+print(n_qtl)
+print(n_ind)
+print(trait_n)
 #############################################################
 #############################################################
 
@@ -126,3 +145,4 @@ GP_g <- GP_g %>% select(qtl, everything())
 
 
 write.table(GP_g, output_file_geno, quote = F, col.names = T, row.names = F)
+print('Done writing files')
