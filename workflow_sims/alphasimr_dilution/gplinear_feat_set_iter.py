@@ -18,15 +18,15 @@ random.seed(42)
 
 #variables
 n_phen=2
-n_loci = 5000
+n_loci = 10000
 n_alleles = 2
 EPS = 1e-15
 
 batch_size = 128
 num_workers = 3
 
-base_file_name = 'gpnet/input_data/qhaplo_100qtl_2500marker_10000n_'
-base_file_name_out = 'qhaplo_100qtl_2500marker_100000n'
+base_file_name = 'gpnet/input_data/qhaplo_100qtl_5000marker_10000n_'
+base_file_name_out = 'qhaplo_100qtl_5000marker_100000n'
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
@@ -482,8 +482,8 @@ def create_filtered_loader(original_loader, selected_indices):
 def iterative_feature_selection(l1_weight=0.001,
                                initial_feature_percent=100,
                                reduction_factor=0.7,  # Keep 70% of features in each iteration
-                               min_feature_percent=5,  # Stop when we reach 5% of features
-                               max_iterations=10,
+                               min_feature_percent=1,  # Stop when we reach 5% of features
+                               max_iterations=100,
                                max_features=None,
                                min_features=10,
                                patience=3):  # Stop if no improvement for 3 iterations
@@ -689,9 +689,9 @@ def main():
     best_indices, best_model, results_df = iterative_feature_selection(
         l1_weight=0.001,                 # L1 regularization strength
         initial_feature_percent=100,     # Start with all features
-        reduction_factor=0.7,            # Keep 70% of features in each iteration
-        min_feature_percent=5,           # Stop at 5% of original features
-        max_iterations=10,               # Maximum number of iterations
+        reduction_factor=0.5,            # Keep 70% of features in each iteration
+        min_feature_percent=0.1,           # Stop at 5% of original features
+        max_iterations=100,               # Maximum number of iterations
         max_features=None,               # No maximum limit on features
         min_features=10,                 # Minimum number of features to keep
         patience=3                       # Stop if no improvement for 3 iterations
