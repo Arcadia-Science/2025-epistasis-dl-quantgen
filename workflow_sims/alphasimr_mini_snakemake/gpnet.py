@@ -20,8 +20,10 @@ import pandas as pd
 #snakemake input
 sample_size = snakemake.params['sample_size']
 qtl_n = snakemake.params['qtl_n']
+rep = snakemake.params['rep']
 
-sim_name = f'qhaplo_{qtl_n}qtl_{sample_size}n'
+
+sim_name = f'qhaplo_{qtl_n}qtl_{sample_size}n_rep{rep}'
 base_file_name = f'gpnet/input_data/{sim_name}_'
 
 
@@ -30,7 +32,6 @@ base_file_name = f'gpnet/input_data/{sim_name}_'
 n_phen=5
 n_loci = int(qtl_n) * 2
 n_alleles = 2
-latent_space_g = 3500
 EPS = 1e-15
 n_trials_optuna = 7
 

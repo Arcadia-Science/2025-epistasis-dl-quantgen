@@ -3,18 +3,17 @@ library(dplyr)
 library(ggplot2)
 library(reshape2)
 
-set.seed(1)
-
 
 n_qtl <- as.numeric(snakemake@params[['qtl_n']])
 n_ind <- as.numeric(snakemake@params[['sample_size']])
+rep <- as.numeric(snakemake@params[['rep']])
 
 output_file_pheno <- snakemake@output[["output_pheno"]]
 output_file_geno <- snakemake@output[["output_geno"]]
 output_file_eff <- snakemake@output[["loci_effects"]]
 
 
-
+set.seed(rep)
 
 founderGenomes = quickHaplo(nInd=n_ind, nChr=1, segSites=n_qtl, ploidy=1)
 
