@@ -19,6 +19,26 @@ parameter_sets:
   rep: 5
   sample_size: 1000
   scaling: 0.1
+- qtl_n: 16
+  rep: 6
+  sample_size: 1000
+  scaling: 0.1
+- qtl_n: 16
+  rep: 7
+  sample_size: 1000
+  scaling: 0.1
+- qtl_n: 16
+  rep: 8
+  sample_size: 1000
+  scaling: 0.1
+- qtl_n: 16
+  rep: 9
+  sample_size: 1000
+  scaling: 0.1
+- qtl_n: 16
+  rep: 10
+  sample_size: 1000
+  scaling: 0.1
 - qtl_n: 22
   rep: 1
   sample_size: 1000
@@ -37,6 +57,26 @@ parameter_sets:
   scaling: 0.2
 - qtl_n: 22
   rep: 5
+  sample_size: 1000
+  scaling: 0.2
+- qtl_n: 22
+  rep: 6
+  sample_size: 1000
+  scaling: 0.2
+- qtl_n: 22
+  rep: 7
+  sample_size: 1000
+  scaling: 0.2
+- qtl_n: 22
+  rep: 8
+  sample_size: 1000
+  scaling: 0.2
+- qtl_n: 22
+  rep: 9
+  sample_size: 1000
+  scaling: 0.2
+- qtl_n: 22
+  rep: 10
   sample_size: 1000
   scaling: 0.2
 - qtl_n: 26
@@ -59,6 +99,26 @@ parameter_sets:
   rep: 5
   sample_size: 1000
   scaling: 0.3
+- qtl_n: 26
+  rep: 6
+  sample_size: 1000
+  scaling: 0.3
+- qtl_n: 26
+  rep: 7
+  sample_size: 1000
+  scaling: 0.3
+- qtl_n: 26
+  rep: 8
+  sample_size: 1000
+  scaling: 0.3
+- qtl_n: 26
+  rep: 9
+  sample_size: 1000
+  scaling: 0.3
+- qtl_n: 26
+  rep: 10
+  sample_size: 1000
+  scaling: 0.3
 - qtl_n: 32
   rep: 1
   sample_size: 1000
@@ -79,6 +139,26 @@ parameter_sets:
   rep: 5
   sample_size: 1000
   scaling: 0.5
+- qtl_n: 32
+  rep: 6
+  sample_size: 1000
+  scaling: 0.5
+- qtl_n: 32
+  rep: 7
+  sample_size: 1000
+  scaling: 0.5
+- qtl_n: 32
+  rep: 8
+  sample_size: 1000
+  scaling: 0.5
+- qtl_n: 32
+  rep: 9
+  sample_size: 1000
+  scaling: 0.5
+- qtl_n: 32
+  rep: 10
+  sample_size: 1000
+  scaling: 0.5
 - qtl_n: 46
   rep: 1
   sample_size: 1000
@@ -99,6 +179,26 @@ parameter_sets:
   rep: 5
   sample_size: 1000
   scaling: 1.0
+- qtl_n: 46
+  rep: 6
+  sample_size: 1000
+  scaling: 1.0
+- qtl_n: 46
+  rep: 7
+  sample_size: 1000
+  scaling: 1.0
+- qtl_n: 46
+  rep: 8
+  sample_size: 1000
+  scaling: 1.0
+- qtl_n: 46
+  rep: 9
+  sample_size: 1000
+  scaling: 1.0
+- qtl_n: 46
+  rep: 10
+  sample_size: 1000
+  scaling: 1.0
 - qtl_n: 64
   rep: 1
   sample_size: 1000
@@ -117,6 +217,26 @@ parameter_sets:
   scaling: 2.0
 - qtl_n: 64
   rep: 5
+  sample_size: 1000
+  scaling: 2.0
+- qtl_n: 64
+  rep: 6
+  sample_size: 1000
+  scaling: 2.0
+- qtl_n: 64
+  rep: 7
+  sample_size: 1000
+  scaling: 2.0
+- qtl_n: 64
+  rep: 8
+  sample_size: 1000
+  scaling: 2.0
+- qtl_n: 64
+  rep: 9
+  sample_size: 1000
+  scaling: 2.0
+- qtl_n: 64
+  rep: 10
   sample_size: 1000
   scaling: 2.0
 - qtl_n: 90
@@ -139,6 +259,26 @@ parameter_sets:
   rep: 5
   sample_size: 1000
   scaling: 4.0
+- qtl_n: 90
+  rep: 6
+  sample_size: 1000
+  scaling: 4.0
+- qtl_n: 90
+  rep: 7
+  sample_size: 1000
+  scaling: 4.0
+- qtl_n: 90
+  rep: 8
+  sample_size: 1000
+  scaling: 4.0
+- qtl_n: 90
+  rep: 9
+  sample_size: 1000
+  scaling: 4.0
+- qtl_n: 90
+  rep: 10
+  sample_size: 1000
+  scaling: 4.0
 - qtl_n: 120
   rep: 1
   sample_size: 1000
@@ -157,6 +297,26 @@ parameter_sets:
   scaling: 7.0
 - qtl_n: 120
   rep: 5
+  sample_size: 1000
+  scaling: 7.0
+- qtl_n: 120
+  rep: 6
+  sample_size: 1000
+  scaling: 7.0
+- qtl_n: 120
+  rep: 7
+  sample_size: 1000
+  scaling: 7.0
+- qtl_n: 120
+  rep: 8
+  sample_size: 1000
+  scaling: 7.0
+- qtl_n: 120
+  rep: 9
+  sample_size: 1000
+  scaling: 7.0
+- qtl_n: 120
+  rep: 10
   sample_size: 1000
   scaling: 7.0
 - qtl_n: 156
@@ -179,6 +339,26 @@ parameter_sets:
   rep: 5
   sample_size: 1000
   scaling: 12.0
+- qtl_n: 156
+  rep: 6
+  sample_size: 1000
+  scaling: 12.0
+- qtl_n: 156
+  rep: 7
+  sample_size: 1000
+  scaling: 12.0
+- qtl_n: 156
+  rep: 8
+  sample_size: 1000
+  scaling: 12.0
+- qtl_n: 156
+  rep: 9
+  sample_size: 1000
+  scaling: 12.0
+- qtl_n: 156
+  rep: 10
+  sample_size: 1000
+  scaling: 12.0
 - qtl_n: 202
   rep: 1
   sample_size: 1000
@@ -197,6 +377,26 @@ parameter_sets:
   scaling: 20.0
 - qtl_n: 202
   rep: 5
+  sample_size: 1000
+  scaling: 20.0
+- qtl_n: 202
+  rep: 6
+  sample_size: 1000
+  scaling: 20.0
+- qtl_n: 202
+  rep: 7
+  sample_size: 1000
+  scaling: 20.0
+- qtl_n: 202
+  rep: 8
+  sample_size: 1000
+  scaling: 20.0
+- qtl_n: 202
+  rep: 9
+  sample_size: 1000
+  scaling: 20.0
+- qtl_n: 202
+  rep: 10
   sample_size: 1000
   scaling: 20.0
 - qtl_n: 46
@@ -219,6 +419,26 @@ parameter_sets:
   rep: 5
   sample_size: 10000
   scaling: 0.1
+- qtl_n: 46
+  rep: 6
+  sample_size: 10000
+  scaling: 0.1
+- qtl_n: 46
+  rep: 7
+  sample_size: 10000
+  scaling: 0.1
+- qtl_n: 46
+  rep: 8
+  sample_size: 10000
+  scaling: 0.1
+- qtl_n: 46
+  rep: 9
+  sample_size: 10000
+  scaling: 0.1
+- qtl_n: 46
+  rep: 10
+  sample_size: 10000
+  scaling: 0.1
 - qtl_n: 64
   rep: 1
   sample_size: 10000
@@ -239,6 +459,26 @@ parameter_sets:
   rep: 5
   sample_size: 10000
   scaling: 0.2
+- qtl_n: 64
+  rep: 6
+  sample_size: 10000
+  scaling: 0.2
+- qtl_n: 64
+  rep: 7
+  sample_size: 10000
+  scaling: 0.2
+- qtl_n: 64
+  rep: 8
+  sample_size: 10000
+  scaling: 0.2
+- qtl_n: 64
+  rep: 9
+  sample_size: 10000
+  scaling: 0.2
+- qtl_n: 64
+  rep: 10
+  sample_size: 10000
+  scaling: 0.2
 - qtl_n: 78
   rep: 1
   sample_size: 10000
@@ -259,6 +499,26 @@ parameter_sets:
   rep: 5
   sample_size: 10000
   scaling: 0.3
+- qtl_n: 78
+  rep: 6
+  sample_size: 10000
+  scaling: 0.3
+- qtl_n: 78
+  rep: 7
+  sample_size: 10000
+  scaling: 0.3
+- qtl_n: 78
+  rep: 8
+  sample_size: 10000
+  scaling: 0.3
+- qtl_n: 78
+  rep: 9
+  sample_size: 10000
+  scaling: 0.3
+- qtl_n: 78
+  rep: 10
+  sample_size: 10000
+  scaling: 0.3
 - qtl_n: 102
   rep: 1
   sample_size: 10000
@@ -279,6 +539,26 @@ parameter_sets:
   rep: 5
   sample_size: 10000
   scaling: 0.5
+- qtl_n: 102
+  rep: 6
+  sample_size: 10000
+  scaling: 0.5
+- qtl_n: 102
+  rep: 7
+  sample_size: 10000
+  scaling: 0.5
+- qtl_n: 102
+  rep: 8
+  sample_size: 10000
+  scaling: 0.5
+- qtl_n: 102
+  rep: 9
+  sample_size: 10000
+  scaling: 0.5
+- qtl_n: 102
+  rep: 10
+  sample_size: 10000
+  scaling: 0.5
 - qtl_n: 142
   rep: 1
   sample_size: 10000
@@ -297,6 +577,26 @@ parameter_sets:
   scaling: 1.0
 - qtl_n: 142
   rep: 5
+  sample_size: 10000
+  scaling: 1.0
+- qtl_n: 142
+  rep: 6
+  sample_size: 10000
+  scaling: 1.0
+- qtl_n: 142
+  rep: 7
+  sample_size: 10000
+  scaling: 1.0
+- qtl_n: 142
+  rep: 8
+  sample_size: 10000
+  scaling: 1.0
+- qtl_n: 142
+  rep: 9
+  sample_size: 10000
+  scaling: 1.0
+- qtl_n: 142
+  rep: 10
   sample_size: 10000
   scaling: 1.0
 - qtl_n: 202
@@ -317,6 +617,26 @@ parameter_sets:
   scaling: 2.0
 - qtl_n: 202
   rep: 5
+  sample_size: 10000
+  scaling: 2.0
+- qtl_n: 202
+  rep: 6
+  sample_size: 10000
+  scaling: 2.0
+- qtl_n: 202
+  rep: 7
+  sample_size: 10000
+  scaling: 2.0
+- qtl_n: 202
+  rep: 8
+  sample_size: 10000
+  scaling: 2.0
+- qtl_n: 202
+  rep: 9
+  sample_size: 10000
+  scaling: 2.0
+- qtl_n: 202
+  rep: 10
   sample_size: 10000
   scaling: 2.0
 - qtl_n: 284
@@ -337,6 +657,26 @@ parameter_sets:
   scaling: 4.0
 - qtl_n: 284
   rep: 5
+  sample_size: 10000
+  scaling: 4.0
+- qtl_n: 284
+  rep: 6
+  sample_size: 10000
+  scaling: 4.0
+- qtl_n: 284
+  rep: 7
+  sample_size: 10000
+  scaling: 4.0
+- qtl_n: 284
+  rep: 8
+  sample_size: 10000
+  scaling: 4.0
+- qtl_n: 284
+  rep: 9
+  sample_size: 10000
+  scaling: 4.0
+- qtl_n: 284
+  rep: 10
   sample_size: 10000
   scaling: 4.0
 - qtl_n: 376
@@ -357,6 +697,26 @@ parameter_sets:
   scaling: 7.0
 - qtl_n: 376
   rep: 5
+  sample_size: 10000
+  scaling: 7.0
+- qtl_n: 376
+  rep: 6
+  sample_size: 10000
+  scaling: 7.0
+- qtl_n: 376
+  rep: 7
+  sample_size: 10000
+  scaling: 7.0
+- qtl_n: 376
+  rep: 8
+  sample_size: 10000
+  scaling: 7.0
+- qtl_n: 376
+  rep: 9
+  sample_size: 10000
+  scaling: 7.0
+- qtl_n: 376
+  rep: 10
   sample_size: 10000
   scaling: 7.0
 - qtl_n: 490
@@ -377,6 +737,26 @@ parameter_sets:
   scaling: 12.0
 - qtl_n: 490
   rep: 5
+  sample_size: 10000
+  scaling: 12.0
+- qtl_n: 490
+  rep: 6
+  sample_size: 10000
+  scaling: 12.0
+- qtl_n: 490
+  rep: 7
+  sample_size: 10000
+  scaling: 12.0
+- qtl_n: 490
+  rep: 8
+  sample_size: 10000
+  scaling: 12.0
+- qtl_n: 490
+  rep: 9
+  sample_size: 10000
+  scaling: 12.0
+- qtl_n: 490
+  rep: 10
   sample_size: 10000
   scaling: 12.0
 - qtl_n: 634
@@ -398,4 +778,344 @@ parameter_sets:
 - qtl_n: 634
   rep: 5
   sample_size: 10000
+  scaling: 20.0
+- qtl_n: 634
+  rep: 6
+  sample_size: 10000
+  scaling: 20.0
+- qtl_n: 634
+  rep: 7
+  sample_size: 10000
+  scaling: 20.0
+- qtl_n: 634
+  rep: 8
+  sample_size: 10000
+  scaling: 20.0
+- qtl_n: 634
+  rep: 9
+  sample_size: 10000
+  scaling: 20.0
+- qtl_n: 634
+  rep: 10
+  sample_size: 10000
+  scaling: 20.0
+- qtl_n: 142
+  rep: 1
+  sample_size: 100000
+  scaling: 0.1
+- qtl_n: 142
+  rep: 2
+  sample_size: 100000
+  scaling: 0.1
+- qtl_n: 142
+  rep: 3
+  sample_size: 100000
+  scaling: 0.1
+- qtl_n: 142
+  rep: 4
+  sample_size: 100000
+  scaling: 0.1
+- qtl_n: 142
+  rep: 5
+  sample_size: 100000
+  scaling: 0.1
+- qtl_n: 202
+  rep: 1
+  sample_size: 100000
+  scaling: 0.2
+- qtl_n: 202
+  rep: 2
+  sample_size: 100000
+  scaling: 0.2
+- qtl_n: 202
+  rep: 3
+  sample_size: 100000
+  scaling: 0.2
+- qtl_n: 202
+  rep: 4
+  sample_size: 100000
+  scaling: 0.2
+- qtl_n: 202
+  rep: 5
+  sample_size: 100000
+  scaling: 0.2
+- qtl_n: 246
+  rep: 1
+  sample_size: 100000
+  scaling: 0.3
+- qtl_n: 246
+  rep: 2
+  sample_size: 100000
+  scaling: 0.3
+- qtl_n: 246
+  rep: 3
+  sample_size: 100000
+  scaling: 0.3
+- qtl_n: 246
+  rep: 4
+  sample_size: 100000
+  scaling: 0.3
+- qtl_n: 246
+  rep: 5
+  sample_size: 100000
+  scaling: 0.3
+- qtl_n: 318
+  rep: 1
+  sample_size: 100000
+  scaling: 0.5
+- qtl_n: 318
+  rep: 2
+  sample_size: 100000
+  scaling: 0.5
+- qtl_n: 318
+  rep: 3
+  sample_size: 100000
+  scaling: 0.5
+- qtl_n: 318
+  rep: 4
+  sample_size: 100000
+  scaling: 0.5
+- qtl_n: 318
+  rep: 5
+  sample_size: 100000
+  scaling: 0.5
+- qtl_n: 448
+  rep: 1
+  sample_size: 100000
+  scaling: 1.0
+- qtl_n: 448
+  rep: 2
+  sample_size: 100000
+  scaling: 1.0
+- qtl_n: 448
+  rep: 3
+  sample_size: 100000
+  scaling: 1.0
+- qtl_n: 448
+  rep: 4
+  sample_size: 100000
+  scaling: 1.0
+- qtl_n: 448
+  rep: 5
+  sample_size: 100000
+  scaling: 1.0
+- qtl_n: 634
+  rep: 1
+  sample_size: 100000
+  scaling: 2.0
+- qtl_n: 634
+  rep: 2
+  sample_size: 100000
+  scaling: 2.0
+- qtl_n: 634
+  rep: 3
+  sample_size: 100000
+  scaling: 2.0
+- qtl_n: 634
+  rep: 4
+  sample_size: 100000
+  scaling: 2.0
+- qtl_n: 634
+  rep: 5
+  sample_size: 100000
+  scaling: 2.0
+- qtl_n: 896
+  rep: 1
+  sample_size: 100000
+  scaling: 4.0
+- qtl_n: 896
+  rep: 2
+  sample_size: 100000
+  scaling: 4.0
+- qtl_n: 896
+  rep: 3
+  sample_size: 100000
+  scaling: 4.0
+- qtl_n: 896
+  rep: 4
+  sample_size: 100000
+  scaling: 4.0
+- qtl_n: 896
+  rep: 5
+  sample_size: 100000
+  scaling: 4.0
+- qtl_n: 1184
+  rep: 1
+  sample_size: 100000
+  scaling: 7.0
+- qtl_n: 1184
+  rep: 2
+  sample_size: 100000
+  scaling: 7.0
+- qtl_n: 1184
+  rep: 3
+  sample_size: 100000
+  scaling: 7.0
+- qtl_n: 1184
+  rep: 4
+  sample_size: 100000
+  scaling: 7.0
+- qtl_n: 1184
+  rep: 5
+  sample_size: 100000
+  scaling: 7.0
+- qtl_n: 1550
+  rep: 1
+  sample_size: 100000
+  scaling: 12.0
+- qtl_n: 1550
+  rep: 2
+  sample_size: 100000
+  scaling: 12.0
+- qtl_n: 1550
+  rep: 3
+  sample_size: 100000
+  scaling: 12.0
+- qtl_n: 1550
+  rep: 4
+  sample_size: 100000
+  scaling: 12.0
+- qtl_n: 1550
+  rep: 5
+  sample_size: 100000
+  scaling: 12.0
+- qtl_n: 2002
+  rep: 1
+  sample_size: 100000
+  scaling: 20.0
+- qtl_n: 2002
+  rep: 2
+  sample_size: 100000
+  scaling: 20.0
+- qtl_n: 2002
+  rep: 3
+  sample_size: 100000
+  scaling: 20.0
+- qtl_n: 2002
+  rep: 4
+  sample_size: 100000
+  scaling: 20.0
+- qtl_n: 2002
+  rep: 5
+  sample_size: 100000
+  scaling: 20.0
+- qtl_n: 448
+  rep: 1
+  sample_size: 1000000
+  scaling: 0.1
+- qtl_n: 448
+  rep: 2
+  sample_size: 1000000
+  scaling: 0.1
+- qtl_n: 448
+  rep: 3
+  sample_size: 1000000
+  scaling: 0.1
+- qtl_n: 634
+  rep: 1
+  sample_size: 1000000
+  scaling: 0.2
+- qtl_n: 634
+  rep: 2
+  sample_size: 1000000
+  scaling: 0.2
+- qtl_n: 634
+  rep: 3
+  sample_size: 1000000
+  scaling: 0.2
+- qtl_n: 776
+  rep: 1
+  sample_size: 1000000
+  scaling: 0.3
+- qtl_n: 776
+  rep: 2
+  sample_size: 1000000
+  scaling: 0.3
+- qtl_n: 776
+  rep: 3
+  sample_size: 1000000
+  scaling: 0.3
+- qtl_n: 1002
+  rep: 1
+  sample_size: 1000000
+  scaling: 0.5
+- qtl_n: 1002
+  rep: 2
+  sample_size: 1000000
+  scaling: 0.5
+- qtl_n: 1002
+  rep: 3
+  sample_size: 1000000
+  scaling: 0.5
+- qtl_n: 1416
+  rep: 1
+  sample_size: 1000000
+  scaling: 1.0
+- qtl_n: 1416
+  rep: 2
+  sample_size: 1000000
+  scaling: 1.0
+- qtl_n: 1416
+  rep: 3
+  sample_size: 1000000
+  scaling: 1.0
+- qtl_n: 2002
+  rep: 1
+  sample_size: 1000000
+  scaling: 2.0
+- qtl_n: 2002
+  rep: 2
+  sample_size: 1000000
+  scaling: 2.0
+- qtl_n: 2002
+  rep: 3
+  sample_size: 1000000
+  scaling: 2.0
+- qtl_n: 2830
+  rep: 1
+  sample_size: 1000000
+  scaling: 4.0
+- qtl_n: 2830
+  rep: 2
+  sample_size: 1000000
+  scaling: 4.0
+- qtl_n: 2830
+  rep: 3
+  sample_size: 1000000
+  scaling: 4.0
+- qtl_n: 3742
+  rep: 1
+  sample_size: 1000000
+  scaling: 7.0
+- qtl_n: 3742
+  rep: 2
+  sample_size: 1000000
+  scaling: 7.0
+- qtl_n: 3742
+  rep: 3
+  sample_size: 1000000
+  scaling: 7.0
+- qtl_n: 4900
+  rep: 1
+  sample_size: 1000000
+  scaling: 12.0
+- qtl_n: 4900
+  rep: 2
+  sample_size: 1000000
+  scaling: 12.0
+- qtl_n: 4900
+  rep: 3
+  sample_size: 1000000
+  scaling: 12.0
+- qtl_n: 6326
+  rep: 1
+  sample_size: 1000000
+  scaling: 20.0
+- qtl_n: 6326
+  rep: 2
+  sample_size: 1000000
+  scaling: 20.0
+- qtl_n: 6326
+  rep: 3
+  sample_size: 1000000
   scaling: 20.0
