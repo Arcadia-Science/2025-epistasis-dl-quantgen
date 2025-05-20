@@ -18,9 +18,11 @@ sample_size = snakemake.params['sample_size']
 qtl_n = snakemake.params['qtl_n']
 trait_n = snakemake.params['trait_n']
 pleio_strength = snakemake.params['pleio_strength']
+rep = snakemake.params['rep']
 
-sim_name = f'qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait'
-base_file_name = f'input_data/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_'
+
+sim_name = f'qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}'
+base_file_name = f'input_data/{sim_name}_'
 
 n_phen = int(snakemake.params['trait_n']) + 2
 n_loci = int(qtl_n) * 2
