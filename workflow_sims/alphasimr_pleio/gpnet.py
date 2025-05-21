@@ -5,19 +5,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
-from torch.utils.data.dataset import Dataset
+import optuna
 import numpy as np
-from sklearn.metrics import r2_score
-import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 import pandas as pd
-from typing import cast
+import json
 
 
 
-batch_size = 128
-num_workers = 3
+
+n_trials_optuna = 10
 
 sample_size = snakemake.params['sample_size']
 qtl_n = snakemake.params['qtl_n']
@@ -28,7 +25,7 @@ rep = snakemake.params['rep']
 sim_name = f'qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}'
 base_file_name = f'input_data/{sim_name}_'
 
-n_phen = int(snakemake.params['trait_n']) + 2
+n_phen = int(snakemake.params['trait_n']) 
 n_loci = int(qtl_n) * 2
 n_alleles = 2
 EPS = 1e-15
@@ -57,7 +54,7 @@ test_loader_gp = loaders['test_loader_gp']
 def train_gpnet(model, train_loader, test_loader=None,
                          n_loci=None,
                          n_alleles=2,
-                         max_epochs=150,  # Set a generous upper limit
+                         max_epochs=100,  # Set a generous upper limit
                          patience=10,      # Number of epochs to wait for improvement
                          min_delta=0.003, # Minimum change to count as improvement
                          learning_rate=0.01,
@@ -180,20 +177,26 @@ def train_gpnet(model, train_loader, test_loader=None,
 
 #####################################################################################################################
 #####################################################################################################################
-
-def run_full_pipeline():
+def objective(trial: optuna.Trial,
+             device: torch.device) -> float:
     """
     Objective function for Optuna that uses early stopping
     """
-    learning_rate = 0.01
-    hidden_layer_size = 4096
+    # Hyperparameters to optimize
+    predefined_lr_values = [0.5, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0001]
 
+    hidden_layer_size = trial.suggest_int('hidden_layer_size', 4096, 4096)
+    learning_rate = trial.suggest_categorical('learning_rate', predefined_lr_values)
+
+
+    #define gpnet model
     model = gpatlas.GP_net(
-    n_loci=n_loci,
-    latent_space_g=hidden_layer_size,
-    n_pheno=n_phen,
-    )
+        n_loci=n_loci,
+        latent_space_g=hidden_layer_size,
+        n_pheno=n_phen,
+        )
 
+    # Use early stopping with appropriate patience
     model, best_loss_gp, history = train_gpnet(model=model,
                                             train_loader=train_loader_gp,
                                             test_loader=test_loader_gp,
@@ -202,58 +205,132 @@ def run_full_pipeline():
                                             device=device)
     model.eval()
 
-    #visualize results
-    true_phenotypes = []
-    predicted_phenotypes = []
-
-    with torch.no_grad():
-        for phens, gens in test_loader_gp:
-            phens = phens.to(device)
-            gens = gens.to(device)
-
-            # Get predictions
-            predictions = model(gens)
-
-            # Store results
-            true_phenotypes.append(phens.cpu().numpy())
-            predicted_phenotypes.append(predictions.cpu().numpy())
-
-    # Concatenate batches
-    true_phenotypes = np.concatenate(true_phenotypes)
-    predicted_phenotypes = np.concatenate(predicted_phenotypes)
-
-    # Calculate correlations for each phenotype
-    correlations = []
-    p_values = []
-    for i in range(n_phen):
-        corr, p_val = pearsonr(true_phenotypes[:, i], predicted_phenotypes[:, i])
-        correlations.append(corr)
-        p_values.append(p_val)
-
-    # Create a detailed DataFrame with all results
-    results_df = pd.DataFrame({
-        'trait_number': range(1, n_phen + 1),
-        'pearson_correlation': correlations,
-        'p_value': p_values,
-        'true_mean': [np.mean(true_phenotypes[:, i]) for i in range(n_phen)],
-        'pred_mean': [np.mean(predicted_phenotypes[:, i]) for i in range(n_phen)],
-        'true_std': [np.std(true_phenotypes[:, i]) for i in range(n_phen)],
-        'pred_std': [np.std(predicted_phenotypes[:, i]) for i in range(n_phen)]
+    # Log useful information for this trial
+    trial.set_user_attr('epochs_trained', history['epochs_trained'])
+    trial.set_user_attr('training_history', {
+        'train_loss': history['train_loss'],
+        'test_loss': history['test_loss']
     })
-
-    # Save to CSV
-    results_df.to_csv(f'gpnet/{sim_name}_phenotype_correlations_untuned.csv', index=False)
-
-    model.eval()
 
     return best_loss_gp
 
-#####################################################################################################################
-#####################################################################################################################
-
 def main():
-    best_loss_gp = run_full_pipeline()
-    print(f"Final loss: {best_loss_gp}")
+    # Create study
+    study = optuna.create_study(direction='minimize')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    # Run optimization
+    n_trials = n_trials_optuna
+
+    try:
+        # Create a list to store results as we go
+        trial_results = []
+
+        study.optimize(
+            lambda trial: objective(
+                trial=trial,
+                device=device
+            ),
+            n_trials=n_trials,
+            callbacks=[
+                lambda study, trial: trial_results.append({
+                    'trial_number': trial.number,
+                    'params': trial.params,
+                    'value': trial.value,
+                    'state': trial.state.name
+                })
+            ]
+        )
+
+    finally:
+        print("\nStudy completed!")
+        print(f"Best parameters found: {study.best_params}")
+        print(f"Best value achieved: {study.best_value}")
+
+        # Save results to CSV
+        results_df = pd.DataFrame(trial_results)
+        results_df.to_csv(f'gpnet/optuna/{sim_name}_optuna.csv', index=False)
+
+        # Save detailed study information to JSON
+        study_info = {
+            'best_params': study.best_params,
+            'best_value': study.best_value,
+            'n_trials': n_trials,
+            'all_trials': trial_results
+        }
+
+        with open(f'gpnet/optuna/{sim_name}_optuna.json', 'w') as f:
+            json.dump(study_info, f, indent=4)
+
+        # Reload best model with the optimized hyperparameters
+        print("\nReloading best model with optimized hyperparameters...")
+        best_hidden_layer_size = study.best_params['hidden_layer_size']
+
+        # Create model with best parameters
+        best_model = gpatlas.GP_net(
+            n_loci=n_loci,
+            latent_space_g=best_hidden_layer_size,
+            n_pheno=n_phen,
+        )
+
+        # Train the best model
+        best_model, best_loss, _ = train_gpnet(
+            model=best_model,
+            train_loader=train_loader_gp,
+            test_loader=test_loader_gp,
+            n_loci=n_loci,
+            learning_rate=study.best_params['learning_rate'],
+            device=device
+        )
+
+        # Evaluate model on test set and calculate Pearson correlation
+        best_model.eval()
+
+        # Collect true and predicted phenotypes
+        true_phenotypes = []
+        predicted_phenotypes = []
+
+        with torch.no_grad():
+            for phens, gens in test_loader_gp:
+                phens = phens.to(device)
+                gens = gens[:, : n_loci * n_alleles].to(device)
+
+                # Get predictions
+                predictions = best_model(gens)
+
+                # Store results
+                true_phenotypes.append(phens.cpu().numpy())
+                predicted_phenotypes.append(predictions.cpu().numpy())
+
+        # Concatenate batches
+        true_phenotypes = np.concatenate(true_phenotypes)
+        predicted_phenotypes = np.concatenate(predicted_phenotypes)
+
+        # Calculate correlations for each phenotype
+        correlations = []
+
+        for i in range(n_phen):
+            corr, _ = pearsonr(true_phenotypes[:, i], predicted_phenotypes[:, i])
+
+            correlations.append(corr)
+
+        # Create a detailed DataFrame with all results
+        results_df = pd.DataFrame({
+            'trait_number': range(1, n_phen + 1),
+            'pearson_correlation': correlations,
+            'true_mean': [np.mean(true_phenotypes[:, i]) for i in range(n_phen)],
+            'pred_mean': [np.mean(predicted_phenotypes[:, i]) for i in range(n_phen)],
+            'true_std': [np.std(true_phenotypes[:, i]) for i in range(n_phen)],
+            'pred_std': [np.std(predicted_phenotypes[:, i]) for i in range(n_phen)]
+        })
+
+        # Save to CSV
+        results_file = f'gpnet/{sim_name}_phenotype_correlations.csv'
+        results_df.to_csv(results_file, index=False)
+
+        # Save the best model
+        model_save_path = f'gpnet/{sim_name}_best_model.pt'
+        torch.save(best_model.state_dict(), model_save_path)
 
 if __name__ == "__main__":
     main()

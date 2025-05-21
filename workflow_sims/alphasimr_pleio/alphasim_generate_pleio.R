@@ -27,24 +27,6 @@ founderGenomes = quickHaplo(nInd=n_ind, nChr=1, segSites=n_qtl, ploidy=1)
 #initialisize sim
 SP = SimParam$new(founderGenomes)
 
-#control additive trait
-SP$addTraitAE(
-  nQtlPerChr=n_qtl, # Carefully tuned with meanDD
-  mean=0, # ~1981 value from Eras data
-  var=1, # Chosen for appropriate rate of gain
-  relAA=0, # relative Vaa in a diploid organism with 50/50 allele freq
-  useVarA = F
-)
-
-#control epi trait
-SP$addTraitAE(
-  nQtlPerChr=n_qtl, # Carefully tuned with meanDD
-  mean=0, # ~1981 value from Eras data
-  var=1, # Chosen for appropriate rate of gain
-  relAA=1, # relative Vaa in a diploid organism with 50/50 allele freq
-  useVarA = F
-)
-
 # Generate experimental traits based on pleio_strength
 if (pleio_strength == 0) {
   # For pleio_strength=0, generate each trait independently through a loop

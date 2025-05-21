@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from snakemake.script import snakemake
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import RidgeCV
@@ -11,13 +12,12 @@ n_iterations = 10  # You can adjust this number based on your needs
 # Set random seed for reproducibility
 np.random.seed(42)
 
-base_file = 'test_sim_qhaplo_100k_10ksites_Ve0'
 
 print("Processing input files")
 # Load genotype, phenotype, and effect files
-geno = pd.read_csv(f'{base_file}_g.txt', index_col=0, sep=" ")
-pheno = pd.read_csv(f'{base_file}_p.txt', index_col=0, sep=" ")
-eff = pd.read_csv(f'{base_file}_eff.txt', sep=" ")
+geno = pd.read_csv(snakemake.input['input_geno'], index_col=0, sep=" ")
+pheno = pd.read_csv(snakemake.input['input_pheno'], index_col=0, sep=" ")
+eff = pd.read_csv(snakemake.input['loci_effects'], sep=" ")
 
 print("Running ridge regression fits with multiple train/test splits")
 
@@ -123,7 +123,7 @@ summary_df = pd.DataFrame(summary_stats)
 
 # Save results to CSV files
 # all_iterations_df.to_csv(f'{base_file}_all_iterations.csv', index=False)
-# summary_df.to_csv(f'{base_file}_summary_stats.csv', index=False)
+summary_df.to_csv(snakemake.output['correlation_summary'], index=False)
 
 # Print summary statistics
 print("\nSummary Statistics (averaged across iterations):")

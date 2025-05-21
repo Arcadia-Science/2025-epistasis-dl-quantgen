@@ -19,16 +19,17 @@ from typing import cast
 batch_size = 128
 num_workers = 3
 
-sample_size = 10000
-qtl_n = 200
-trait_n = 10
-pleio_strength = 0
+sample_size = snakemake.params['sample_size']
+qtl_n = snakemake.params['qtl_n']
+trait_n = snakemake.params['trait_n']
+pleio_strength = snakemake.params['pleio_strength']
+rep = snakemake.params['rep']
 
-sim_name = f'qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_0.5H2_cup'
-base_file_name = f'input_data/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_0.5H2_cup_'
+sim_name = f'qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}'
+base_file_name = f'input_data/{sim_name}_'
 
-n_phen = trait_n + 2
-n_loci = 200 * 2
+n_phen = int(snakemake.params['trait_n']) 
+n_loci = int(qtl_n) * 2
 n_alleles = 2
 EPS = 1e-15
 
@@ -185,7 +186,7 @@ def run_full_pipeline():
     Objective function for Optuna that uses early stopping
     """
     learning_rate = 0.01
-    hidden_layer_size = 3500
+    hidden_layer_size = 4096
 
     model = gpatlas.GP_net(
     n_loci=n_loci,
@@ -241,7 +242,7 @@ def run_full_pipeline():
     })
 
     # Save to CSV
-    results_df.to_csv(f'experiments/{sim_name}_phenotype_correlations_untuned.csv', index=False)
+    results_df.to_csv(f'gpnet/{sim_name}_phenotype_correlations_untuned.csv', index=False)
 
     model.eval()
 

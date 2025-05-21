@@ -24,7 +24,7 @@ rep = snakemake.params['rep']
 sim_name = f'qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}'
 base_file_name = f'input_data/{sim_name}_'
 
-n_phen = int(snakemake.params['trait_n']) + 2
+n_phen = int(snakemake.params['trait_n']) 
 n_loci = int(qtl_n) * 2
 n_alleles = 2
 EPS = 1e-15
