@@ -31,7 +31,7 @@ n_phen=2
 n_loci = int(marker_n) * 2
 n_alleles = 2
 EPS = 1e-15
-n_trials_optuna = 10
+n_trials_optuna = 20
 
 batch_size = 128
 num_workers = 3
@@ -77,7 +77,7 @@ def laplace_regularization(model):
 def train_gplinear_lasso(model, train_loader, test_loader,
           l1_weight=0.01,  # Renamed from kl_weight to l1_weight
           learning_rate=0.1,
-          max_epochs=150,
+          max_epochs=200,
           min_delta=0.001,
           patience=20,
           feature_selection_threshold=1e-4,  # Threshold for considering a weight significant
@@ -288,11 +288,11 @@ def evaluate_model(model, test_loader):
 def train_gpnet(model, train_loader, test_loader=None,
                          n_loci=None,
                          n_alleles=2,
-                         max_epochs=150,  # Set a generous upper limit
+                         max_epochs=100,  # Set a generous upper limit
                          patience=25,      # Number of epochs to wait for improvement
-                         min_delta=0.001, # Minimum change to count as improvement
-                         learning_rate=0.01,
-                         l1_lambda=0, weight_decay=1e-7, device=device):
+                         min_delta=0.003, # Minimum change to count as improvement
+                         learning_rate=None,
+                         l1_lambda=0, weight_decay=1e-5, device=device):
     """
     Train model with early stopping to prevent overtraining
     """
@@ -427,8 +427,8 @@ def pretrain_lasso_model(l1_weight=None):
     )
     return linear_model
 
-def run_lasso_mlp_pipeline(linear_model=None,l1_weight=None, feature_threshold=None,
-                          mlp_hidden_size=None, max_selected_features=None):
+def run_lasso_mlp_pipeline(linear_model=None, l1_weight=None, feature_threshold=None,
+                          mlp_hidden_size=None, mlp_learning_rate=None, max_selected_features=None):
     """
     Run a two-stage pipeline:
     1. Select important featuresfrom pretrained lasso model
@@ -504,6 +504,7 @@ def run_lasso_mlp_pipeline(linear_model=None,l1_weight=None, feature_threshold=N
         model=mlp_model,
         train_loader=filtered_train_loader,
         test_loader=filtered_test_loader,
+        learning_rate=mlp_learning_rate,
         n_loci=len(selected_indices),
         device=device,
         l1_lambda=0  # No need for L1 here as we've already done feature selection
@@ -522,7 +523,9 @@ def objective(trial: optuna.Trial,
     Objective function for Optuna that uses early stopping
     """
     # Hyperparameters to optimize
-    #predefined_feat_sel_amounts = [100, 200, 300, 400, 500, 750, 1000]
+    predefined_lr_values = [0.5, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0001]
+    learning_rate_value = trial.suggest_categorical('learning_rate_value', predefined_lr_values)
+
     feat_threshold = trial.suggest_int('feat_threshold', 100,1000)
 
     _, _, _, best_loss_mlp = run_lasso_mlp_pipeline(
@@ -530,7 +533,8 @@ def objective(trial: optuna.Trial,
         l1_weight=0.001,
         feature_threshold=0.03,       # Threshold for feature selection
         mlp_hidden_size=4096,           # Size of hidden layers in MLP
-        max_selected_features=feat_threshold     # Maximum number of features to use
+        max_selected_features=feat_threshold,     # Maximum number of features to use
+        mlp_learning_rate=learning_rate_value
     )
     return best_loss_mlp
 
@@ -577,6 +581,7 @@ def main():
         # Reload best model with the optimized hyperparameters
         print("\nReloading best model with optimized hyperparameters...")
         best_predefined_feat_sel_amounts = study.best_params['feat_threshold']
+        best_mlp_lr = study.best_params['learning_rate_value']
 
         # Train the best models
         linear_model_pruned, mlp_model, filtered_test_loader, _ = run_lasso_mlp_pipeline(
@@ -584,7 +589,8 @@ def main():
             l1_weight=0.001,
             feature_threshold=0.03,       # Threshold for feature selection
             mlp_hidden_size=4096,           # Size of hidden layers in MLP
-            max_selected_features=best_predefined_feat_sel_amounts     # Maximum number of features to use
+            max_selected_features=best_predefined_feat_sel_amounts,     # Maximum number of features to use
+            mlp_learning_rate=best_mlp_lr
         )
 
         # Evaluate both models and write results

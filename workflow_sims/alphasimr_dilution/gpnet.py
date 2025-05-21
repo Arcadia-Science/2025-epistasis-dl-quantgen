@@ -35,7 +35,7 @@ n_loci = int(marker_n) * 2
 n_alleles = 2
 latent_space_g = 3500
 EPS = 1e-15
-n_trials_optuna = 7
+n_trials_optuna = 10
 
 batch_size = 128
 num_workers = 3
