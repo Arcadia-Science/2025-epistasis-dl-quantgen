@@ -25,7 +25,7 @@ rep = snakemake.params['rep']
 sim_name = f'qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}'
 base_file_name = f'input_data/{sim_name}_'
 
-n_phen = int(snakemake.params['trait_n']) 
+n_phen = int(snakemake.params['trait_n'])
 n_loci = int(qtl_n) * 2
 n_alleles = 2
 EPS = 1e-15
@@ -57,7 +57,7 @@ def train_gpnet(model, train_loader, test_loader=None,
                          max_epochs=100,  # Set a generous upper limit
                          patience=10,      # Number of epochs to wait for improvement
                          min_delta=0.003, # Minimum change to count as improvement
-                         learning_rate=0.01,
+                         learning_rate=None,
                          l1_lambda=0, weight_decay=1e-5, device=device):
     """
     Train model with early stopping to prevent overtraining
