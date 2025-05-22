@@ -1,4 +1,4 @@
-# Empirical scaling of deep models in epistasis prediction
+# Empirical scaling of deep learning models in epistasis prediction
 
 ## Purpose
 This repository contains all scripts needed to replicate the analyses in this **pub**, reporting results on the ability of a simple deep learning model to recover epistasis on a series of simulated benchmarks.
@@ -6,7 +6,7 @@ This repository contains all scripts needed to replicate the analyses in this **
 
 ## Installation and Setup
 
-To directly replicate the environment used to produce the pub, first install [Miniconda](https://docs.conda.io/projects/miniconda/en/latest/)
+To directly replicate the environments used to produce the pub, first install [Miniconda](https://docs.conda.io/projects/miniconda/en/latest/)
 
 Then create and activate a new virtual environment. TODO
 
@@ -21,7 +21,7 @@ All input data generated for our experiments is reproduced with the simulation s
 
 ## Snakemake workflow
 
-To generate simulated data and fit all models, execute the script 'run_snakemake_pipeline.sh'
+To generate simulated data and fit all models, execute the script ```run_snakemake_pipeline.sh```
 
 ## Visualize results
 
