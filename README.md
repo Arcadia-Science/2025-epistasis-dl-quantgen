@@ -38,9 +38,7 @@ sandler_gpatas_data
          ├──Fig_supplement.ipynb #notebook for comparing analytical and SGD fit lienar models (Sup Fig 1.)
          ├──generate_simulation_reps.ipynb #notebook for generating simulation replicates if new combinations needed, outputs Snakemake_wildcard_config.yaml
          ├──Snakemake_wildcard_config.yaml #config file of all parameter simulation combinations/reps for snakemake pipeline
-         ├──
-         ├──
-
+         └── Snakemake*.smk pipelines for generating sims, fitting linear and MLP models.
     ├── alphasimr_dilution #pipeline for recerating Experiment 2 (Dilution)
     └── alphasimr_pleio #pipeline for recerating Experiment 3 (Genetic correlations + MTL)
  ```
