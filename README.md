@@ -21,12 +21,16 @@ All input data generated for our experiments is reproduced with the simulation s
 
 ## Snakemake workflow
 
-To generate simulated data and fit all models, execute the script ```run_snakemake_pipeline.sh```
+To generate simulated data and fit all models, first install and load the conda environment in ```workflow_sims\envs\snakemake.yml``` and then execute the script ```run_snakemake_pipeline.sh```.
 
 ## Visualize results
 
-Python notebooks
-Switch env
+The three main figures of the pub are visualized in python notebooks in the 3 experiment directories:
+   - ```workflow_sims\alphasimr_scaling\Fig_1_scaling.ipynb```
+   - ```workflow_sims\alphasimr_scaling\Fig_2_dilution.ipynb```
+   - ```workflow_sims\alphasimr_scaling\Fig_3_pleiotropy.ipynb```
+
+If you would like to re-run these analyses denovo, simply install the conda environment from the file in ```workflow_sims\envs\gpatlas.yml```, load the environment, and run the notebooks. 
 
 ### Description of the folder structure
 
@@ -34,11 +38,17 @@ Switch env
 sandler_gpatas_data
 └── workflow_sims
     ├── alphasimr_scaling #pipeline for recerating Experiment 1 (Scaling)
-         ├──Fig_1_scaling.ipynb #notebook for recreating scaling experiment result Fig 1.
-         ├──Fig_supplement.ipynb #notebook for comparing analytical and SGD fit lienar models (Sup Fig 1.)
-         ├──generate_simulation_reps.ipynb #notebook for generating simulation replicates if new combinations needed, outputs Snakemake_wildcard_config.yaml
-         ├──Snakemake_wildcard_config.yaml #config file of all parameter simulation combinations/reps for snakemake pipeline
-         └── Snakemake*.smk pipelines for generating sims, fitting linear and MLP models.
+         ├── Fig_1_scaling.ipynb #notebook for recreating scaling experiment result Fig 1.
+         ├── Fig_supplement.ipynb #notebook for comparing analytical and SGD fit lienar models (Sup Fig 1.)
+         ├── generate_simulation_reps.ipynb #notebook for writing simulation replicates config
+         ├── Snakemake_wildcard_config.yaml #simulation replicates config
+         └── Snakemake*.smk pipelines for generating sims, fitting linear, and MLP models.
     ├── alphasimr_dilution #pipeline for recerating Experiment 2 (Dilution)
-    └── alphasimr_pleio #pipeline for recerating Experiment 3 (Genetic correlations + MTL)
+         ├── Fig_2_dilution.ipynb #notebook for recreating diultion experiment result Fig 2.
+         └──  Snakemake*.smk pipelines for generating sims, fitting linear, MLP, and feature seln. models.
+    ├── alphasimr_pleio #pipeline for recerating Experiment 3 (Genetic correlations + MTL)
+         ├── Fig_3_pleiotropy.ipynb #notebook for recreating pleiotropy experiment result Fig 3.
+         └──  Snakemake*.smk pipelines for generating sims, fitting linear, and MLP models.
+    ├── envs #conda environments needed for recreating results
+    └──gpatlas #python module with geno-pheno modeling functionality
  ```
