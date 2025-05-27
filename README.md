@@ -35,7 +35,7 @@ If you would like to re-run these analyses denovo, simply install the conda envi
 
 ```
 sandler_gpatas_data
-└── workflow_sims
+├── workflow_sims
     ├── alphasimr_scaling        #pipeline for recerating Experiment 1 (Scaling)
          ├── Fig_1_scaling.ipynb          #notebook for recreating scaling experiment result Fig 1.
          ├── Fig_supplement.ipynb         #notebook for comparing analytical and SGD fit linear models (Sup Fig 1.)
@@ -50,4 +50,5 @@ sandler_gpatas_data
          └──  Snakemake*.smk        #pipelines for generating sims, fitting linear, and MLP models.
     ├── envs         #conda environments needed for recreating results
     └──gpatlas       #python module with geno-pheno modeling functionality
+└── run_snakemake_pipeline.sh       #master script for running all snakemake pipelines
  ```
