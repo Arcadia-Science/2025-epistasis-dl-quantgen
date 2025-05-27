@@ -53,4 +53,4 @@ rule optimize_fit_gpnet:
         rep = "{rep}"
     threads: 12
     script:
-        "gpnet.py"
+        "fit_mlp.py"
