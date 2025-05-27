@@ -43,4 +43,4 @@ rule optimize_fit_gpnet:
         rep = "{rep}"
     threads: 12
     script:
-        "gplinear_feat_set_optuna.py"
+        "fit_feat_seln_mlp.py"
