@@ -21,7 +21,8 @@ rule all:
 
 # Generate simulated data
 rule run_sims:
-    conda: 'R'
+    conda:
+        '../envs/R.yml'
     output:
         output_pheno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}_p.txt',
         output_geno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}_g.txt',
@@ -31,6 +32,6 @@ rule run_sims:
         qtl_n = "{qtl_n}",
         pleio_strength = "{pleio_strength}",
         trait_n = "{trait_n}",
-        rep = "{rep}"  # Add rep parameter
+        rep = "{rep}"
     script:
         'alphasim_generate_pleio.R'

@@ -18,18 +18,12 @@ rule all:
                sample_size=SAMPLE_SIZE,
                pleio_strength=PLEIO_STRENGTH,
                trait_n=TRAIT_N,
-               rep=REP),
-
-        expand("gplinear/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}_phenotype_correlations_untuned.csv",
-               qtl_n=QTL_N,
-               sample_size=SAMPLE_SIZE,
-               pleio_strength=PLEIO_STRENGTH,
-               trait_n=TRAIT_N,
                rep=REP)
 
 # Create hdf5 files for input to gpatlas
 rule generate_input_data:
-    conda: 'gpatlas'
+    conda:
+        '../envs/gpatlas.yml'
     input:
         input_pheno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}_p.txt',
         input_geno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}_g.txt',
@@ -39,12 +33,13 @@ rule generate_input_data:
     resources:
         mem_mb=25000,
     params:
-        rep = "{rep}"  # Add rep parameter
+        rep = "{rep}"
     script:
         'prep_data.py'
 
 rule optimize_fit_gpnet:
-    conda: 'gpatlas'
+    conda:
+        '../envs/gpatlas.yml'
     input:
         input_train_data = rules.generate_input_data.output.train_data_input,
         input_test_data = rules.generate_input_data.output.test_data_input,
@@ -55,41 +50,7 @@ rule optimize_fit_gpnet:
         qtl_n = "{qtl_n}",
         pleio_strength = "{pleio_strength}",
         trait_n = "{trait_n}",
-        rep = "{rep}"  # Add rep parameter
+        rep = "{rep}"
     threads: 12
     script:
         "gpnet.py"
-
-rule optimize_fit_gpnet_untuned:
-    conda: 'gpatlas'
-    input:
-        input_train_data = rules.generate_input_data.output.train_data_input,
-        input_test_data = rules.generate_input_data.output.test_data_input,
-    output:
-        pheno_corrs = 'gpnet/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}_phenotype_correlations_untuned.csv'
-    params:
-        sample_size = "{sample_size}",
-        qtl_n = "{qtl_n}",
-        pleio_strength = "{pleio_strength}",
-        trait_n = "{trait_n}",
-        rep = "{rep}"  # Add rep parameter
-    threads: 12
-    script:
-        "gpnet_untuned.py"
-
-rule optimize_fit_gplinear_untuned:
-    conda: 'gpatlas'
-    input:
-        input_train_data = rules.generate_input_data.output.train_data_input,
-        input_test_data = rules.generate_input_data.output.test_data_input,
-    output:
-        pheno_corrs = 'gplinear/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}_phenotype_correlations_untuned.csv'
-    params:
-        sample_size = "{sample_size}",
-        qtl_n = "{qtl_n}",
-        pleio_strength = "{pleio_strength}",
-        trait_n = "{trait_n}",
-        rep = "{rep}"  # Add rep parameter
-    threads: 12
-    script:
-        "gplinear.py"

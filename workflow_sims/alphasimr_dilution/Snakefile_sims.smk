@@ -13,7 +13,8 @@ rule all:
 
 #generate simulated data
 rule run_sims:
-    conda: 'R'
+    conda:
+        '../envs/R.yml'
     output:
         output_pheno = "alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_p.txt",
         output_geno = "alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_g.txt",
@@ -25,10 +26,3 @@ rule run_sims:
         rep = "{rep}"
     script:
         'alphasim_generate.R'
-
-
-#run linear model
-##
-
-#run GPatlas
-##

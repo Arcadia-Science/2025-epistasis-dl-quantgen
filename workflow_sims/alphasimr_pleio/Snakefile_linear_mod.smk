@@ -8,7 +8,6 @@ def get_valid_outputs(pattern):
     return [pattern.format(qtl_n=combo["qtl_n"], sample_size=combo["sample_size"])
             for combo in VALID_COMBINATIONS]
 
-
 rule all:
     input:
         expand("linear_model/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}_scklrr_corr_summary.txt",
@@ -18,11 +17,10 @@ rule all:
                trait_n=TRAIT_N,
                rep=REP)
 
-
-
 #fit rrBLUP approximation through sci-kit learn ridge regression (cross validated)
 rule run_python_rrBLUP:
-    conda: 'gpatlas'
+    conda:
+        '../envs/gpatlas.yml'
     input:
         input_pheno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}_p.txt',
         input_geno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}_g.txt',
