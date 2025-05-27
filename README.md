@@ -33,7 +33,14 @@ Switch env
 ```
 sandler_gpatas_data
 └── workflow_sims
-    ├── alphasimr_mini_snakemake #pipeline for recerating Experiment 1 (Scaling)
+    ├── alphasimr_scaling #pipeline for recerating Experiment 1 (Scaling)
+         ├──Fig_1_scaling.ipynb #notebook for recreating scaling experiment result Fig 1.
+         ├──Fig_supplement.ipynb #notebook for comparing analytical and SGD fit lienar models (Sup Fig 1.)
+         ├──generate_simulation_reps.ipynb #notebook for generating simulation replicates if new combinations needed, outputs Snakemake_wildcard_config.yaml
+         ├──Snakemake_wildcard_config.yaml #config file of all parameter simulation combinations/reps for snakemake pipeline
+         ├──
+         ├──
+
     ├── alphasimr_dilution #pipeline for recerating Experiment 2 (Dilution)
     └── alphasimr_pleio #pipeline for recerating Experiment 3 (Genetic correlations + MTL)
  ```

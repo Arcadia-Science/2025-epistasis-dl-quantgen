@@ -45,7 +45,7 @@ rule optimize_fit_gpnet_untuned:
         rep = "{rep}"
     threads: 12
     script:
-        "gpnet_untuned.py"
+        "fit_mlp_untuned.py"
 
 rule optimize_fit_gplinear_untuned:
     conda:
@@ -61,4 +61,4 @@ rule optimize_fit_gplinear_untuned:
         rep = "{rep}"
     threads: 12
     script:
-        "gplinear_untuned.py"
+        "fit_linearSGD.py"
