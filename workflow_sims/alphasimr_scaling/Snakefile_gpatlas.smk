@@ -11,6 +11,12 @@ def get_valid_outputs(pattern):
     return [pattern.format(qtl_n=combo["qtl_n"], sample_size=combo["sample_size"], rep=combo["rep"])
             for combo in VALID_COMBINATIONS]
 
+onstart:
+    shell("""
+    mkdir -p gpnet/input_data
+    mkdir -p gplinear
+    """)
+
 rule all:
    input:
         get_valid_outputs('gpnet/input_data/qhaplo_{qtl_n}qtl_{sample_size}n_rep{rep}_train.hdf5'),
@@ -18,7 +24,7 @@ rule all:
         get_valid_outputs("gplinear/qhaplo_{qtl_n}qtl_{sample_size}n_rep{rep}_phenotype_correlations_untuned.csv"),
 
 
-#create hdf5 files for input to gpatlas
+#create hdf5 files for input to pytorch
 rule generate_input_data:
     conda:
         '../envs/gpatlas.yml'
@@ -31,6 +37,7 @@ rule generate_input_data:
     script:
         'prep_data.py'
 
+#fit MLP
 rule optimize_fit_gpnet_untuned:
     conda:
         '../envs/gpatlas.yml'
@@ -47,6 +54,7 @@ rule optimize_fit_gpnet_untuned:
     script:
         "fit_mlp_untuned.py"
 
+#fit SGD ridge regression approximation
 rule optimize_fit_gplinear_untuned:
     conda:
         '../envs/gpatlas.yml'

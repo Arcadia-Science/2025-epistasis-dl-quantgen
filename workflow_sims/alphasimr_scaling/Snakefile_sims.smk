@@ -1,7 +1,7 @@
 
 configfile: "Snakemake_wildcard_config.yaml"
 
-# Convert config parameter sets to the format your function expects
+# Convert config parameter sets to usable format
 VALID_COMBINATIONS = [
     {"sample_size": p["sample_size"], "qtl_n": p["qtl_n"], "rep": p["rep"]}
     for p in config["parameter_sets"]
@@ -11,6 +11,9 @@ VALID_COMBINATIONS = [
 def get_valid_outputs(pattern):
     return [pattern.format(qtl_n=combo["qtl_n"], sample_size=combo["sample_size"], rep=combo["rep"])
             for combo in VALID_COMBINATIONS]
+
+onstart:
+    shell("mkdir -p alphasimr_output")
 
 rule all:
     input:

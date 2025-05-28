@@ -13,11 +13,14 @@ def get_valid_outputs(pattern):
     return [pattern.format(qtl_n=combo["qtl_n"], sample_size=combo["sample_size"], rep=combo["rep"])
             for combo in VALID_COMBINATIONS]
 
+onstart:
+    shell("mkdir -p linear_model")
+
 rule all:
     input:
         get_valid_outputs('linear_model/qhaplo_{qtl_n}qtl_{sample_size}n_rep{rep}_scklrr_corr_summary.txt')
 
-#fit rrBLUP approximation through sci-kit learn ridge regression (cross validated)
+#fit rrBLUP approximation through scikit-learn ridge regression (cross validated)
 rule run_python_rrBLUP:
     conda:
         '../envs/gpatlas.yml'
