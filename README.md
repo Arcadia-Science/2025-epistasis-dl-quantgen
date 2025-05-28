@@ -34,7 +34,7 @@ If you would like to re-run these analyses denovo, simply install the conda envi
 ### Description of the folder structure
 
 ```
-sandler_gpatas_data
+sandler_gpatlas_data
 ├── workflow_sims
     ├── alphasimr_scaling        #pipeline for recerating Experiment 1 (Scaling)
          ├── Fig_1_scaling.ipynb          #notebook for recreating scaling experiment result Fig 1.
