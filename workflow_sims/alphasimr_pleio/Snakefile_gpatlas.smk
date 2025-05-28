@@ -4,6 +4,12 @@ PLEIO_STRENGTH = [0, 0.25, 0.5, 0.75, 0.95]
 TRAIT_N = [10, 100]
 REP = list(range(1, 6))  # 5 replicates, adjust as needed
 
+onstart:
+    shell("""
+    mkdir -p gpnet/optuna
+    mkdir -p input_data
+    """)
+
 rule all:
     input:
         expand("input_data/qhaplo_{qtl_n}qtl_{sample_size}n_{pleio_strength}pleio_{trait_n}trait_rep{rep}_train.hdf5",
