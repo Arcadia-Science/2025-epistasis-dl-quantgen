@@ -4,10 +4,6 @@ PLEIO_STRENGTH = [0, 0.25, 0.5, 0.75, 0.95]
 TRAIT_N = [10, 100]
 REP = list(range(1, 6))  # 5 replicates, adjust as needed
 
-def get_valid_outputs(pattern):
-    return [pattern.format(qtl_n=combo["qtl_n"], sample_size=combo["sample_size"])
-            for combo in VALID_COMBINATIONS]
-
 onstart:
     shell("mkdir -p linear_model")
 

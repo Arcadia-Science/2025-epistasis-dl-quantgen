@@ -5,7 +5,10 @@ SAMPLE_SIZE = [10000]
 REP = list(range(1, 6))  # 5 replicates, adjust as needed
 
 onstart:
-    shell("mkdir -p gphybrid/optuna")
+    shell("""
+    mkdir -p gpnet/input_data
+    mkdir -p gphybrid/optuna
+    """)
 
 rule all:
    input:
@@ -14,7 +17,8 @@ rule all:
 
 #create hdf5 files for input to gpatlas
 rule generate_input_data:
-    conda: 'gpatlas'
+    conda:
+        '../envs/gpatlas.yml'
     input:
         input_pheno = "alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_p.txt",
         input_geno = "alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_g.txt"
@@ -30,8 +34,8 @@ rule generate_input_data:
 
 #fit pruned MLP/linear model with LASSO feature selection
 rule optimize_fit_feat_seln_gpnet:
-    #conda: "envs/gpatlas.yml"
-    conda: 'gpatlas'
+    conda:
+        '../envs/gpatlas.yml'
     input:
         input_train_data = rules.generate_input_data.output.train_data_input,
         input_test_data = rules.generate_input_data.output.test_data_input,
