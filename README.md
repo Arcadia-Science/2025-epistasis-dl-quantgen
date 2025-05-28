@@ -33,6 +33,7 @@ If you would like to re-run these analyses denovo, simply install the conda envi
 
 ### Description of the folder structure
 
+```
 sandler_gpatlas_data
 ├── workflow_sims
 │   ├── alphasimr_scaling        #pipeline for recreating Experiment 1 (Scaling)
@@ -50,3 +51,4 @@ sandler_gpatlas_data
 │   ├── envs         #conda environments needed for recreating results
 │   └── gpatlas       #python module with geno-pheno modeling functionality
 └── run_snakemake_pipeline.sh       #master script for running all snakemake pipelines
+```
