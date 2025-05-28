@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from snakemake.script import snakemake
-import os
 from pathlib import Path
 import numpy as np
 import pickle as pk
@@ -104,7 +103,6 @@ for x in categories_to_copy:
 for x in categories_to_stratefy:
  out_dict_train[x] = in_data[x][:train_length]
 
-#pk.dump(out_dict_train, open('gpatlas/' + file_prefix + '_train.pk','wb'))
 save_to_hdf5(out_dict_train, train_file,)
 
 del(out_dict_train)
@@ -116,7 +114,6 @@ for x in categories_to_copy:
 for x in categories_to_stratefy:
  out_dict_test[x] = in_data[x][train_length:]
 
-#pk.dump(out_dict_test, open('gpatlas/' + file_prefix + '_test.pk','wb'))
 save_to_hdf5(out_dict_test, test_file)
 
 del(out_dict_test)

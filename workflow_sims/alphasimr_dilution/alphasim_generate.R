@@ -25,17 +25,17 @@ SP = SimParam$new(founderGenomes)
 
 #add 1 traits for each level of relative epistasis (Vaa/Va at 0.5 AF)
 SP$addTraitAE(
-  nQtlPerChr=n_qtl, # Carefully tuned with meanDD
-  mean=0, # ~1981 value from Eras data
-  var=3, # Chosen for appropriate rate of gain
+  nQtlPerChr=n_qtl,
+  mean=0,
+  var=1,
   relAA=0, # relative Vaa in a diploid organism with 50/50 allele freq
   useVarA = F
 )
 
 SP$addTraitAE(
-  nQtlPerChr=n_qtl, # Carefully tuned with meanDD
-  mean=0, # ~1981 value from Eras data
-  var=3, # Chosen for appropriate rate of gain
+  nQtlPerChr=n_qtl,
+  mean=0,
+  var=1,
   relAA=1, # relative Vaa in a diploid organism with 50/50 allele freq
   useVarA = F
 )
@@ -43,13 +43,6 @@ SP$addTraitAE(
 #initialize pop to be
 pop = newPop(founderGenomes)
 pop = setPheno(pop,H2 = c(0.999))
-
-#varA(pop)
-#varAA(pop)
-#varG(pop)/varP(pop)
-#varP(pop)
-#varAA(pop)/varA(pop)
-#varA(pop)/varP(pop)
 
 #extract phenotypes
 pheno = pheno(pop)

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from snakemake.script import snakemake
-import os
 from pathlib import Path
 import numpy as np
 import pickle as pk
@@ -10,7 +9,6 @@ import h5py
 #snakemake input
 geno = snakemake.input['input_geno']
 pheno = snakemake.input['input_pheno']
-
 
 train_file = snakemake.output['train_data_input']
 test_file = snakemake.output['test_data_input']
@@ -61,14 +59,10 @@ phens = phen_file.read().split('\n')
 phens = [x.split() for x in phens]
 
 out_dict['phenotype_names'] = phens[0][1:] #extract header of pheno names from first row
-#dict(list(out_dict.items())[2:3])
-
 
 out_dict['strain_names'] = [x[0] for x in phens[1:-1]] #strain names extracted from first colun skipping one row
 out_dict['phenotypes'] = [x[1:] for x in phens[1:-1]]
 out_dict['phenotypes'] = [[float(y)  if y!= 'NA' else 0 for y in x[1:]] for x in phens[1:-1]] #convert pheno to float, dealing with NA
-
-
 
 genotype_file = open(geno, 'r')
 
@@ -78,10 +72,6 @@ gens = [x.split() for x in gens]
 out_dict['loci'] = [x[0] for x in gens[1:-1]]
 new_coding_dict = {'0':[1,0],'1':[0,1]}
 out_dict['genotypes'] = [[new_coding_dict[x] for x in [gens[y][n] for y in range(len(gens))[1:-1]]] for n in range(len(gens[0]))[1:]]
-
-#dump full dataset
-#pk.dump(out_dict, open('gpatlas/' + file_prefix + '.pk','wb'))
-
 
 #################################################################################
 #################################################################################
@@ -104,7 +94,6 @@ for x in categories_to_copy:
 for x in categories_to_stratefy:
  out_dict_train[x] = in_data[x][:train_length]
 
-#pk.dump(out_dict_train, open('gpatlas/' + file_prefix + '_train.pk','wb'))
 save_to_hdf5(out_dict_train, train_file,)
 
 del(out_dict_train)
@@ -116,7 +105,6 @@ for x in categories_to_copy:
 for x in categories_to_stratefy:
  out_dict_test[x] = in_data[x][train_length:]
 
-#pk.dump(out_dict_test, open('gpatlas/' + file_prefix + '_test.pk','wb'))
 save_to_hdf5(out_dict_test, test_file)
 
 del(out_dict_test)

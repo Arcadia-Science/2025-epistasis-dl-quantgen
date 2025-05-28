@@ -7,37 +7,23 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import optuna
 import numpy as np
 from scipy.stats import pearsonr
-
-import json
 import pandas as pd
-
-
-
 
 #snakemake input
 sample_size = snakemake.params['sample_size']
 qtl_n = snakemake.params['qtl_n']
 rep = snakemake.params['rep']
 
-
 sim_name = f'qhaplo_{qtl_n}qtl_{sample_size}n_rep{rep}'
 base_file_name = f'gpnet/input_data/{sim_name}_'
-
-
 
 #variables
 n_phen=5
 n_loci = int(qtl_n) * 2
 n_alleles = 2
 EPS = 1e-15
-n_trials_optuna = 30
-
-batch_size = 128
-num_workers = 3
-
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
@@ -177,7 +163,7 @@ def train_gpnet(model, train_loader, test_loader=None,
 
 def run_full_pipeline():
     """
-    Fit gpnet with no hyperparameter optimization
+    Fit MLP with no hyperparameter optimization
     """
     # Hyperparameters to fit
     hidden_layer_size = 4096

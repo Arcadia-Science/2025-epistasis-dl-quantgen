@@ -10,12 +10,8 @@ import torch.optim as optim
 import optuna
 import numpy as np
 from scipy.stats import pearsonr
-
 import json
 import pandas as pd
-
-
-
 
 #snakemake input
 sample_size = snakemake.params['sample_size']
@@ -23,23 +19,15 @@ qtl_n = snakemake.params['qtl_n']
 marker_n = snakemake.params['marker_n']
 rep = snakemake.params['rep']
 
-
 sim_name = f'qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}'
 base_file_name = f'gpnet/input_data/{sim_name}_'
-
-
 
 #variables
 n_phen=2
 n_loci = int(marker_n) * 2
 n_alleles = 2
-latent_space_g = 3500
 EPS = 1e-15
 n_trials_optuna = 10
-
-batch_size = 128
-num_workers = 3
-
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
@@ -69,7 +57,7 @@ def train_gpnet(model, train_loader, test_loader=None,
                          min_delta=0.003, # Minimum change to count as improvement
                          learning_rate=None, weight_decay=1e-5, device=device):
     """
-    Train model with early stopping to prevent overtraining
+    Train MLP model with early stopping to prevent overtraining
     """
     # Move model to device
     model = model.to(device)
@@ -180,7 +168,7 @@ def train_gpnet(model, train_loader, test_loader=None,
 def objective(trial: optuna.Trial,
              device: torch.device) -> float:
     """
-    Objective function for Optuna that uses early stopping
+    Objective function for Optuna that uses early stopping, optimizes learning rate
     """
     # Hyperparameters to optimize
     predefined_lr_values = [0.5, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0001]

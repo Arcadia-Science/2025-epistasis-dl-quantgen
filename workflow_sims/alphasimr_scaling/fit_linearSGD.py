@@ -12,8 +12,6 @@ import pandas as pd
 
 #variables
 
-batch_size = 128
-num_workers = 3
 
 sample_size = snakemake.params['sample_size']
 qtl_n = snakemake.params['qtl_n']
@@ -175,7 +173,7 @@ def train_gplinear(model, train_loader, test_loader,
 
 def run_full_pipeline():
     """
-    Objective function for Optuna that uses early stopping
+    Run model fitting
     """
     model = gplinear_kl(
     n_loci=n_loci,

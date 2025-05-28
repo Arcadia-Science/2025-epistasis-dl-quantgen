@@ -33,9 +33,6 @@ n_alleles = 2
 EPS = 1e-15
 n_trials_optuna = 20
 
-batch_size = 128
-num_workers = 3
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
@@ -520,7 +517,7 @@ linear_model = pretrain_lasso_model(l1_weight=0.001)# L1 regularization strength
 def objective(trial: optuna.Trial,
              device: torch.device) -> float:
     """
-    Objective function for Optuna that uses early stopping
+    Objective function for Optuna that uses early stopping optimizing learning rate and #selected features
     """
     # Hyperparameters to optimize
     predefined_lr_values = [0.5, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0001]

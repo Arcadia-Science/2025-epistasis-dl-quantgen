@@ -11,9 +11,6 @@ from scipy.stats import pearsonr
 import pandas as pd
 import json
 
-
-
-
 n_trials_optuna = 10
 
 sample_size = snakemake.params['sample_size']
@@ -60,7 +57,7 @@ def train_gpnet(model, train_loader, test_loader=None,
                          learning_rate=None,
                          l1_lambda=0, weight_decay=1e-5, device=device):
     """
-    Train model with early stopping to prevent overtraining
+    Train MLP model with early stopping to prevent overtraining
     """
     # Move model to device
     model = model.to(device)
@@ -180,7 +177,7 @@ def train_gpnet(model, train_loader, test_loader=None,
 def objective(trial: optuna.Trial,
              device: torch.device) -> float:
     """
-    Objective function for Optuna that uses early stopping
+    Objective function for Optuna optimizing learning rate for MLP
     """
     # Hyperparameters to optimize
     predefined_lr_values = [0.5, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0001]

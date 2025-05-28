@@ -122,7 +122,6 @@ for trait, results in trait_results.items():
 summary_df = pd.DataFrame(summary_stats)
 
 # Save results to CSV files
-# all_iterations_df.to_csv(f'{base_file}_all_iterations.csv', index=False)
 summary_df.to_csv(snakemake.output['correlation_summary'], index=False)
 
 # Print summary statistics

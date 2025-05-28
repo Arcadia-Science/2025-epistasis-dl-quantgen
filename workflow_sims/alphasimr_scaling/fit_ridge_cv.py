@@ -7,11 +7,10 @@ from sklearn.linear_model import RidgeCV
 from scipy import stats
 
 # Number of train/test split iterations
-n_iterations = 10  # You can adjust this number based on your needs
+n_iterations = 10  # number of random test-train splits to average over
 
 # Set random seed for reproducibility
 np.random.seed(42)
-
 
 print("Processing input files")
 # Load genotype, phenotype, and effect files
@@ -122,7 +121,6 @@ for trait, results in trait_results.items():
 summary_df = pd.DataFrame(summary_stats)
 
 # Save results to CSV files
-# all_iterations_df.to_csv(f'{base_file}_all_iterations.csv', index=False)
 summary_df.to_csv(snakemake.output['correlation_summary'], index=False)
 
 # Print summary statistics

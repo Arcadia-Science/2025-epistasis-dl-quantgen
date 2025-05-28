@@ -18,8 +18,6 @@ set.seed(rep)
 
 founderGenomes = quickHaplo(nInd=n_ind, nChr=1, segSites=n_qtl, ploidy=1)
 
-
-
 #############################################################
 #############################################################
 #set up first generation and phenotypes
@@ -55,13 +53,6 @@ if (pleio_strength == 0) {
 #initialize pop to be
 pop = newPop(founderGenomes)
 pop = setPheno(pop,H2 = c(0.999))
-
-#varA(pop)
-#varAA(pop)
-#varG(pop)/varP(pop)
-#varP(pop)
-#varAA(pop)/varA(pop)
-#varA(pop)/varP(pop)
 
 #extract phenotypes
 pheno = pheno(pop)
