@@ -4,12 +4,13 @@ QTL_N = [100]
 SAMPLE_SIZE = [10000]
 REP = list(range(1, 6))  # 5 replicates, adjust as needed
 
+onstart:
+    shell("mkdir -p gphybrid/optuna")
+
 rule all:
    input:
         expand('gphybrid/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_mlp_pruned_correlations.csv',
                qtl_n=QTL_N, marker_n=MARKER_N, sample_size=SAMPLE_SIZE, rep=REP)
-        #expand('gpnet/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_phenotype_correlations_untuned.csv',
-        #       qtl_n=QTL_N, marker_n=MARKER_N, sample_size=SAMPLE_SIZE, rep=REP)
 
 #create hdf5 files for input to gpatlas
 rule generate_input_data:
@@ -27,7 +28,8 @@ rule generate_input_data:
     script:
         'prep_data.py'
 
-rule optimize_fit_gpnet:
+#fit pruned MLP/linear model with LASSO feature selection
+rule optimize_fit_feat_seln_gpnet:
     #conda: "envs/gpatlas.yml"
     conda: 'gpatlas'
     input:

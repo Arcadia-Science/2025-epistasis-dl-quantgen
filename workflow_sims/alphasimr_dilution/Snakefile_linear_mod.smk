@@ -4,6 +4,9 @@ QTL_N = [100]
 SAMPLE_SIZE = [10000]
 REP = list(range(1, 6))  # 5 replicates, adjust as needed
 
+onstart:
+    shell("mkdir -p linear_model")
+
 rule all:
    input:
         expand("linear_model/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_scklrr_corr_summary.txt",

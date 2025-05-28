@@ -4,6 +4,12 @@ QTL_N = [100]
 SAMPLE_SIZE = [10000]
 REP = list(range(1, 6))  # 5 replicates, adjust as needed
 
+onstart:
+    shell("""
+    mkdir -p gpnet/input_data
+    mkdir -p gpnet/optuna
+    """)
+
 rule all:
     input:
         expand('gpnet/input_data/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_train.hdf5',
