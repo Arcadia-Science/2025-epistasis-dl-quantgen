@@ -3,9 +3,23 @@
 ## Purpose
 This repository contains all scripts needed to replicate the analyses in the pub [TODO: add title and link] about the ability of a simple deep learning model to recover epistasis on a series of simulated benchmarks.
 
+## Hardware Requirements
+
+We ran the three experimental pipelines on a a GPU based AWS EC2 instance (g4dn.8xlarge) with 12 vCPUs, 128Gb of RAM, a 1Tb hard drive, and a T4 Tensore Core GPU.
+These hardware requirements are only necessary if you wish to replicate the large sample size simulations (10^5 + samples) of the scaling experiment. The smaller sample size simulations can be run with 30Gb of RAM (e.g. on a g4dn.2xlarge instance) and take up much less drive space. See the Snakemake workflow instructions below for details on how to avoid replicating the large sample size simulations.
+
+A GPU greatly speeds up model fitting in PyTorch but is not strictly required. However, expect run times to be exceptionally slow when fitting models for simulations with more than 10^3 samples or QTLs.
+
+Runtime for the first scaling simulations is on the order of a week, the dilution and pleiotropy simulations take around 48 hours if run without parallelization.
+
 ## Data
 
-All input data required to reproduce the results in the pub is generated with simulation scripts.
+All input data required to reproduce the results in the pub is generated with the following simulations scripts:
+   - ```workflow_sims/alphasimr_scaling/alphasim_generate.R```
+   - ```workflow_sims/alphasimr_dilution/alphasim_generate.R```
+   - ```workflow_sims/alphasimr_pleio/alphasim_generate.R```
+
+These scripts are set-up to be run as part of a snakemake pipeline described below.
 
 ## Installation and Setup
 
@@ -20,7 +34,25 @@ conda activate snakemake
 
 ## Snakemake workflow
 
-To generate simulated data and fit all models, first install and activate the conda environment as described above and then run this command: `bash run_snakemake_pipeline.sh`.
+To generate simulated data and fit all models, first install and activate the conda environment as described above and then run this command: `bash run_snakemake_pipeline.sh`. This file
+
+### Workflow description
+
+For each experiment you will see the following general snakemake files:
+   - ```workflow_sims/alphasimr_*/Snakefile_sims.smk``` this pipeline executes the job ```run_sims``` to generate and save simulated data using the R package AlphaSimR
+   - ```workflow_sims/alphasimr_*/Snakefile_linear_mod.smk``` this takes the output from the sims and runes ```run_python_rrBLUP``` which fits a ridge-regression model using scikit-learn
+   - ```workflow_sims/alphasimr_*/Snakefile_gpatlas.smk``` this workflow also takes the output from the sims and fits models using PyTorch
+      - runs ```generate_input_data``` to generate hdf5 files for input to PyTorch
+      - runs ```optimize_fit_gpnet```/```fit_gpnet``` to fit an MLP predicting simulated phenotype from simulated genotypes either with or without hyperparameter optimization depending on the experiment.
+
+Additionally the dilution experiment has another workflow ```workflow_sims/alphasimr_dilution/Snakefile_feat_seln```.
+This runs a modified verion of the ```workflow_sims/alphasimr_*/Snakefile_gpatlas.smk``` workflow where feature seleciton is performed using LASSO regression in the rule ```optimize_fit_feat_seln_gpnet```
+
+### Changing simulation parameters
+For the first 'scaling' experiment described in the pub you may wish to avoid running the 10^5 and 10^6 sample size simulations due to the hardware requirements.
+To do so, you can re-rerun the ```workflow_sims/alphasimr_scaling/generate_simulation_reps.ipynb``` notebook, which generates the config file ```workflow_sims/alphasimr_scaling/Snakemake_wildcard_config.yaml```  which captures the simulation parameters combinations snakemake will execute. Simply edit the ```sample_sizes``` dictionary in the notebook to contain the smaller sample sizes you would like to simulate and run the notebook to generate an updated config file. This notebook requires you to first create a Conda environment from the file `workflow_sims/envs/gpatlas.yml`.
+
+The same process can be done to change the number of replicates for the scaling experiment. Otherwise all parameters for the other simulations are captured in the header of their respective snakemake files and can be edited as needed. Be warned that in order for the pipelines to work properly, all the snakefiles generating results for one experiment must have the same parameter combinations, so their headers must be identical.
 
 ## Visualize results
 
