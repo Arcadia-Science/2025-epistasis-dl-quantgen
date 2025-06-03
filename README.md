@@ -25,7 +25,7 @@ These scripts are set-up to be run as part of a snakemake pipeline described bel
 
 To directly replicate the environments used to produce the pub, first install [Miniconda](https://docs.conda.io/projects/miniconda/en/latest/)
 
-Then create and activate a new virtual environment.
+Then create and activate a new virtual environment:
 
 ```bash
 conda env create -n snakemake --file workflow_sims/envs/snakemake.yml
