@@ -29,7 +29,7 @@ The three main figures of the pub are visualized in python notebooks in the 3 ex
    - ```workflow_sims/alphasimr_dilution/Fig_2_dilution.ipynb```
    - ```workflow_sims/alphasimr_pleio/Fig_3_pleiotropy.ipynb```
 
-If you would like to re-run these analyses denovo, simply install the conda environment from the file in ```workflow_sims/envs/gpatlas.yml```, load the environment, and run the notebooks.
+If you would like to re-run these notebooks, create a Conda environment from the file `workflow_sims/envs/gpatlas.yml` and use it to run the notebooks.
 
 ### Description of the folder structure
 
