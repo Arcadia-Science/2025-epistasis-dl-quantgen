@@ -31,7 +31,7 @@ n_phen=2
 n_loci = int(marker_n) * 2
 n_alleles = 2
 EPS = 1e-15
-n_trials_optuna = 20
+n_trials_optuna = 10
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
@@ -520,7 +520,8 @@ def objective(trial: optuna.Trial,
     Objective function for Optuna that uses early stopping optimizing learning rate and #selected features
     """
     # Hyperparameters to optimize
-    predefined_lr_values = [0.5, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0001]
+    #predefined_lr_values = [0.5, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0001]
+    predefined_lr_values = [0.01]
     learning_rate_value = trial.suggest_categorical('learning_rate_value', predefined_lr_values)
 
     feat_threshold = trial.suggest_int('feat_threshold', 100,1000)

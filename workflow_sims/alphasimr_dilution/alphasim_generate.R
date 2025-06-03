@@ -42,7 +42,7 @@ SP$addTraitAE(
 
 #initialize pop to be
 pop = newPop(founderGenomes)
-pop = setPheno(pop,H2 = c(0.999))
+pop = setPheno(pop,H2 = c(0.9999))
 
 #extract phenotypes
 pheno = pheno(pop)
