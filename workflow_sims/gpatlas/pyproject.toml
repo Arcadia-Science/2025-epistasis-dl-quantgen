@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "gpatlas"
 version = "0.1.0"
 authors = [
-    {name = "George Sandler", email = "your.email@example.com"},
+    {name = "George Sandler", email = "george.sandler@arcadiascience.com"},
 ]
 description = "gpatlas modified for simulated data pipeline"
 readme = "README.md"
