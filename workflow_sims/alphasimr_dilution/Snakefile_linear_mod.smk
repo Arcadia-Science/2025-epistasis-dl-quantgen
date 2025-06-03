@@ -15,7 +15,8 @@ rule all:
 #fit rrBLUP approximation through sci-kit learn ridge regression (cross validated)
 rule run_python_rrBLUP:
     conda:
-        '../envs/gpatlas.yml'
+        #'../envs/gpatlas.yml'
+        'gpatlas'
     input:
         input_pheno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_p.txt',
         input_geno = 'alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_g.txt',

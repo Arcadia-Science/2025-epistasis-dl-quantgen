@@ -20,7 +20,8 @@ rule all:
 #create hdf5 files for input to gpatlas
 rule generate_input_data:
     conda:
-        '../envs/gpatlas.yml'
+        #'../envs/gpatlas.yml'
+        'gpatlas'
     input:
         input_pheno = "alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_p.txt",
         input_geno = "alphasimr_output/qhaplo_{qtl_n}qtl_{marker_n}marker_{sample_size}n_rep{rep}_g.txt"
@@ -36,7 +37,8 @@ rule generate_input_data:
 
 rule optimize_fit_gpnet:
     conda:
-        '../envs/gpatlas.yml'
+        #'../envs/gpatlas.yml'
+        'gpatlas'
     input:
         input_train_data = rules.generate_input_data.output.train_data_input,
         input_test_data = rules.generate_input_data.output.test_data_input,
