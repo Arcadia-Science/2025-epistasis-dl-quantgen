@@ -1,7 +1,7 @@
 # Empirical scaling of deep learning models in epistasis prediction
 
 ## Purpose
-This repository contains all scripts needed to replicate the analyses in this **pub**, reporting results on the ability of a simple deep learning model to recover epistasis on a series of simulated benchmarks.
+This repository contains all scripts needed to replicate the analyses in the pub [TODO: add title and link] about the ability of a simple deep learning model to recover epistasis on a series of simulated benchmarks.
 
 ## Data
 
