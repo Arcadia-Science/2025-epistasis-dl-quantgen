@@ -40,7 +40,7 @@ To generate simulated data and fit all models, first install and activate the co
 
 For each experiment you will see the following general snakemake files:
    - ```workflow_sims/alphasimr_*/Snakefile_sims.smk``` this pipeline executes the job ```run_sims``` to generate and save simulated data using the R package AlphaSimR
-   - ```workflow_sims/alphasimr_*/Snakefile_linear_mod.smk``` this takes the output from the sims and runes ```run_python_rrBLUP``` which fits a ridge-regression model using scikit-learn
+   - ```workflow_sims/alphasimr_*/Snakefile_linear_mod.smk``` this takes the output from the sims and runs ```run_python_rrBLUP``` which fits a ridge-regression model using scikit-learn as follows:
    - ```workflow_sims/alphasimr_*/Snakefile_gpatlas.smk``` this workflow also takes the output from the sims and fits models using PyTorch
       - runs ```generate_input_data``` to generate hdf5 files for input to PyTorch
       - runs ```optimize_fit_gpnet```/```fit_gpnet``` to fit an MLP predicting simulated phenotype from simulated genotypes either with or without hyperparameter optimization depending on the experiment.
