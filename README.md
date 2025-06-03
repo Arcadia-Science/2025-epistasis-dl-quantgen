@@ -20,7 +20,7 @@ conda activate snakemake
 
 ## Snakemake workflow
 
-To generate simulated data and fit all models, first install and load the conda environment in ```workflow_sims/envs/snakemake.yml``` and then execute the script ```run_snakemake_pipeline.sh```.
+To generate simulated data and fit all models, first install and activate the conda environment as described above and then run this command: `bash run_snakemake_pipeline.sh`.
 
 ## Visualize results
 
