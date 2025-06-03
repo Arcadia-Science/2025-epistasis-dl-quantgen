@@ -5,7 +5,7 @@ This repository contains all scripts needed to replicate the analyses in the pub
 
 ## Data
 
-All input data generated for our experiments is reproduced with the simulation scripts
+All input data required to reproduce the results in the pub is generated with simulation scripts.
 
 ## Installation and Setup
 
