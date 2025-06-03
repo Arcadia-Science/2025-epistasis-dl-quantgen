@@ -24,7 +24,7 @@ To generate simulated data and fit all models, first install and activate the co
 
 ## Visualize results
 
-The three main figures of the pub are visualized in python notebooks in the 3 experiment directories:
+The three main figures in the pub are generated in Jupyter notebooks found in the three experiment directories:
    - ```workflow_sims/alphasimr_scaling/Fig_1_scaling.ipynb```
    - ```workflow_sims/alphasimr_dilution/Fig_2_dilution.ipynb```
    - ```workflow_sims/alphasimr_pleio/Fig_3_pleiotropy.ipynb```
