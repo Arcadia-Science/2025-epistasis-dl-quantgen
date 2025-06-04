@@ -29,4 +29,4 @@ rule run_python_rrBLUP:
     resources:
         mem_mb=25000
     script:
-        'fit_ridge_cv.py'
+        '../common_scripts/fit_ridge_cv.py'

@@ -35,7 +35,7 @@ rule generate_input_data:
         train_data_input = 'gpnet/input_data/qhaplo_{qtl_n}qtl_{sample_size}n_rep{rep}_train.hdf5',
         test_data_input = 'gpnet/input_data/qhaplo_{qtl_n}qtl_{sample_size}n_rep{rep}_test.hdf5'
     script:
-        'prep_data.py'
+        '../common_scripts/prep_data.py'
 
 #fit MLP
 rule optimize_fit_gpnet_untuned:

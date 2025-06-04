@@ -28,4 +28,4 @@ rule run_python_rrBLUP:
     params:
         rep = "{rep}"
     script:
-        'fit_ridge_cv.py'
+        '../common_scripts/fit_ridge_cv.py'

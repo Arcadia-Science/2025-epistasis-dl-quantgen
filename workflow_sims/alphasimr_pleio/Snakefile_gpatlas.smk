@@ -41,7 +41,7 @@ rule generate_input_data:
     params:
         rep = "{rep}"
     script:
-        'prep_data.py'
+        '../common_scripts/prep_data.py'
 
 rule optimize_fit_gpnet:
     conda:

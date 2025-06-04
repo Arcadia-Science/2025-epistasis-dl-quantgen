@@ -31,7 +31,7 @@ rule generate_input_data:
     params:
         rep = "{rep}"
     script:
-        'prep_data.py'
+        '../common_scripts/prep_data.py'
 
 #fit pruned MLP/linear model with LASSO feature selection
 rule optimize_fit_feat_seln_gpnet:
