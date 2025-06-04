@@ -52,7 +52,6 @@ out_dict={}
 ######################################################################################
 ######################################################################################
 
-#file_prefix = 'test_sim_WF_1kbt_10000n_5000000bp'
 phen_file = open(pheno, 'r')
 
 phens = phen_file.read().split('\n')
@@ -96,8 +95,6 @@ for x in categories_to_stratefy:
 
 save_to_hdf5(out_dict_train, train_file,)
 
-del(out_dict_train)
-
 #test set
 for x in categories_to_copy:
  out_dict_test[x] = in_data[x]
@@ -106,5 +103,3 @@ for x in categories_to_stratefy:
  out_dict_test[x] = in_data[x][train_length:]
 
 save_to_hdf5(out_dict_test, test_file)
-
-del(out_dict_test)

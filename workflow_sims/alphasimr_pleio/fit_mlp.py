@@ -55,7 +55,7 @@ def train_gpnet(model, train_loader, test_loader=None,
                          patience=10,      # Number of epochs to wait for improvement
                          min_delta=0.003, # Minimum change to count as improvement
                          learning_rate=None,
-                         l1_lambda=0, weight_decay=1e-5, device=device):
+                         weight_decay=1e-5, device=device):
     """
     Train MLP model with early stopping to prevent overtraining
     """
@@ -98,19 +98,8 @@ def train_gpnet(model, train_loader, test_loader=None,
             optimizer.zero_grad()
             output = model(gens)
 
-            # focal loss
+            # MAE loss
             g_p_recon_loss = F.l1_loss(output + EPS, phens + EPS)
-
-            first_layer_l1 = 0
-
-            for name, param in model.named_parameters():
-                # Check if the parameter belongs to the first linear layer
-                if 'gpnet.0.weight' in name:
-                    first_layer_l1 += torch.sum(torch.abs(param))
-
-            # Combined loss with L1 penalty
-            g_p_recon_loss = g_p_recon_loss + l1_lambda * first_layer_l1
-
 
             # Backward and optimize
             g_p_recon_loss.backward()

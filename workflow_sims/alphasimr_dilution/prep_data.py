@@ -78,10 +78,6 @@ out_dict['loci'] = [x[0] for x in gens[1:-1]]
 new_coding_dict = {'0':[1,0],'1':[0,1]}
 out_dict['genotypes'] = [[new_coding_dict[x] for x in [gens[y][n] for y in range(len(gens))[1:-1]]] for n in range(len(gens[0]))[1:]]
 
-#dump full dataset
-#pk.dump(out_dict, open('gpatlas/' + file_prefix + '.pk','wb'))
-
-
 #################################################################################
 #################################################################################
 #split test train
@@ -105,8 +101,6 @@ for x in categories_to_stratefy:
 
 save_to_hdf5(out_dict_train, train_file,)
 
-del(out_dict_train)
-
 #test set
 for x in categories_to_copy:
  out_dict_test[x] = in_data[x]
@@ -115,5 +109,3 @@ for x in categories_to_stratefy:
  out_dict_test[x] = in_data[x][train_length:]
 
 save_to_hdf5(out_dict_test, test_file)
-
-del(out_dict_test)
