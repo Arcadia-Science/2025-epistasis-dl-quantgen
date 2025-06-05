@@ -2,7 +2,7 @@ workflow_sims/alphasimr_output/*
 *.pdf
 *.txt
 *.pk
-*/.snakemake/*
+**/.snakemake/*
 *.png
 *.pdf
 *.svg
