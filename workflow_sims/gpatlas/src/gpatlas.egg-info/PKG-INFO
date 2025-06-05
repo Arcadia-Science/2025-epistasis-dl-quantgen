@@ -1,8 +1,8 @@
-Metadata-Version: 2.2
+Metadata-Version: 2.4
 Name: gpatlas
 Version: 0.1.0
 Summary: gpatlas modified for simulated data pipeline
-Author-email: George Sandler <your.email@example.com>
+Author-email: George Sandler <george.sandler@arcadiascience.com>
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
