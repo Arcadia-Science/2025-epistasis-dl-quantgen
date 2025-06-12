@@ -70,6 +70,8 @@ conda activate snakemake
 
 To generate simulated data and fit all models, first install and activate the conda environment as described above and then run this command: `bash run_snakemake_pipeline.sh`.
 
+As discussed above, the pipelines executed by this script require substantial computational resources and require approximately one week to run for the scaling experiment if inluding large sample sizes. 
+
 This script will execute all snakemake pipelines sequentially, allowing for parallelization within snakemake workflow if the ```--cores``` parameter is set to more than 1. In principle if hardware allows, these pipelines can be run in parallel by the user with a modified pipeline script.
 
 ### Workflow description
