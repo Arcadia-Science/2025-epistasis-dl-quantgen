@@ -6,7 +6,7 @@ This repository contains all scripts needed to replicate the analyses in the pub
 Our scripts and analyses are split up into three experiments that correspond to three sections in the pub:
 
 #### Experiment 1: "Scaling"
-This set of scripts tests the ability of a simple MLP neural network to capture epistatic in a simulated genotype to phenotype mapping task.
+This set of scripts tests the ability of a simple MLP neural network to capture epistasis in a simulated genotype-to-phenotype mapping task.
 We generate data across a variety of genetic architectures, sample sizes, and QTL numbers to figure out how much data is needed for an MLP to learn epistasis.
 
 The directory for this experiment is: ```workflow_sims/alphasimr_scaling```
