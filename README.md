@@ -48,7 +48,7 @@ This repo includes 3 files:
    - ```alphasimr_dilution_input.tar.xz``` simulated data for the dilution experiment
    - ```alphasimr_pleio_input.tar.xz``` simulated data for the pleiotropy experiment
 
-Simply download these files, and then run uncompress them to the correct input data directory for each experiment
+Simply download these files, and then extract them to the correct input data directory for each experiment
 
 For example: ```tar -xJf alphasimr_pleio_input.tar.xz -C workflow_sims/alphasimr_pleio/alphasimr_output```
 
