@@ -1,13 +1,13 @@
 # Empirical scaling of deep learning models in epistasis prediction
 
 ## Purpose
-This repository contains all scripts needed to replicate the analyses in the pub [TODO: add title and link]. These abalyses test the ability of simple deep learning models to learn epistasic interactions is a series of simulated genotype-phenotype datasets.
+This repository contains all scripts needed to replicate the analyses in the pub [Epistasis and deep learning in quantitative genetics](https://doi.org/10.57844/arcadia-25nt-guw3). These analyses test the ability of simple deep learning models to learn epistatic interactions in a series of simulated genotype-phenotype datasets.
 
 Our scripts and analyses are split up into three experiments that correspond to three sections in the pub:
 
 #### Experiment 1: "Scaling"
-This set of scripts tests the ability of a simple MLP neural network to capture epistasis in a simulated genotype to phenotype mapping task.
-We generate data across a variety of genetic acrhitectures, sample sizes, and QTL numbers to figure out how much data is needed for an MLP to learn epistasis.
+This set of scripts tests the ability of a simple MLP neural network to capture epistatic in a simulated genotype to phenotype mapping task.
+We generate data across a variety of genetic architectures, sample sizes, and QTL numbers to figure out how much data is needed for an MLP to learn epistasis.
 
 The directory for this experiment is: ```workflow_sims/alphasimr_scaling```
 
@@ -23,7 +23,7 @@ The directory for this experiment is: ```workflow_sims/alphasimr_pleio```
 
 ## Hardware Requirements
 
-We ran the three experimental pipelines on a a GPU based AWS EC2 instance (g4dn.8xlarge) with 12 vCPUs, 128Gb of RAM, a 1Tb hard drive, and a T4 Tensore Core GPU.
+We ran the three experimental pipelines on a GPU based AWS EC2 instance (g4dn.8xlarge) with 12 vCPUs, 128Gb of RAM, a 1Tb hard drive, and a T4 Tensor Core GPU.
 These hardware requirements are only necessary if you wish to replicate the large sample size simulations (10^6 samples) of the scaling experiment. The smaller sample size simulations can be run with 30Gb of RAM (e.g. on a g4dn.2xlarge instance) and take up much less drive space. See the Snakemake workflow instructions below for details on how to avoid replicating the large sample size simulations.
 
 A GPU greatly speeds up model fitting in PyTorch but is not strictly required. However, expect run times to be exceptionally slow when fitting models for simulations with more than 10^3 samples or QTLs.
@@ -69,7 +69,7 @@ conda activate snakemake
 
 To generate simulated data and fit all models, first install and activate the conda environment as described above and then run this command: `bash run_snakemake_pipeline.sh`.
 
-This script will execute all snakemake pipelines sequentially, allowing for parallelizaiton within snakemake workflow if the ```--cores``` parameter is set to more than 1. In principle if hardware allows, these pipeline can be run in parallel by the user with a modified pipeline script.
+This script will execute all snakemake pipelines sequentially, allowing for parallelization within snakemake workflow if the ```--cores``` parameter is set to more than 1. In principle if hardware allows, these pipelines can be run in parallel by the user with a modified pipeline script.
 
 ### Workflow description
 
@@ -81,7 +81,7 @@ For each experiment you will see the following general snakemake files:
       - runs ```optimize_fit_gpnet```/```fit_gpnet``` to fit an MLP predicting simulated phenotype from simulated genotypes either with or without hyperparameter optimization depending on the experiment.
 
 Additionally the dilution experiment has another workflow ```workflow_sims/alphasimr_dilution/Snakefile_feat_seln```.
-This runs a modified verion of the ```workflow_sims/alphasimr_*/Snakefile_gpatlas.smk``` workflow where feature seleciton is performed using LASSO regression in the rule ```optimize_fit_feat_seln_gpnet```
+This runs a modified verion of the ```workflow_sims/alphasimr_*/Snakefile_gpatlas.smk``` workflow where feature selection is performed using LASSO regression in the rule ```optimize_fit_feat_seln_gpnet```
 
 ### Changing simulation parameters
 For the first 'scaling' experiment described in the pub you may wish to avoid running the 10^5 and 10^6 sample size simulations due to the hardware requirements.
