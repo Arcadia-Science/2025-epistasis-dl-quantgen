@@ -9,7 +9,7 @@ Our scripts and analyses are split up into three experiments that correspond to 
 This set of scripts tests the ability of a simple MLP neural network to capture epistasis in a simulated genotype-to-phenotype mapping task.
 We generate data across a variety of genetic architectures, sample sizes, and QTL numbers to figure out how much data is needed for an MLP to learn epistasis.
 
-The directory for this experiment is: ```workflow_sims/alphasimr_scaling```
+The directory for this experiment is: `workflow_sims/alphasimr_scaling`
 
 #### Experiment 2: "Dilution"
 This set of scripts focuses on one base scenario from the scaling experiment (100 QTLs and 10,000 samples) and tests the ability of an MLP to learn epistasis when the causal QTLs are diluted with progressively larger numbers of neutral QTLs.
