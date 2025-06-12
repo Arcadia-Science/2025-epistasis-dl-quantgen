@@ -42,7 +42,7 @@ These scripts are set-up to be run as part of a snakemake pipeline described bel
 ### Uploaded data
 Alternatively we have uploaded the genotype, phenotype and QTL effect size files we generated in our simulations to the following [zenodo repository](https://zenodo.org/records/15644566).
 
-This repo includes 3 files:
+This repo includes four files:
    - ```alphasimr_scaling_input.tar.xz``` simulated data for the scaling experiment (except the largest sim reps of 1e06 samples)
    - ```alphasimr_scaling_1e06_input.tar.xz``` simulated data for the scaling experiment from the largest sim reps of 1e06 samples
    - ```alphasimr_dilution_input.tar.xz``` simulated data for the dilution experiment
