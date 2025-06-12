@@ -1,7 +1,7 @@
 # Empirical scaling of deep learning models in epistasis prediction
 
 ## Purpose
-This repository contains all scripts needed to replicate the analyses in the pub [TODO: add title and link] about the ability of a simple deep learning model to recover epistasis on a series of simulated benchmarks.
+This repository contains all scripts needed to replicate the analyses in the pub [TODO: add title and link]. These abalyses test the ability of simple deep learning models to learn epistasic interactions is a series of simulated genotype-phenotype datasets.
 
 Our scripts and analyses are split up into three experiments that correspond to three sections in the pub:
 
@@ -24,11 +24,11 @@ The directory for this experiment is: ```workflow_sims/alphasimr_pleio```
 ## Hardware Requirements
 
 We ran the three experimental pipelines on a a GPU based AWS EC2 instance (g4dn.8xlarge) with 12 vCPUs, 128Gb of RAM, a 1Tb hard drive, and a T4 Tensore Core GPU.
-These hardware requirements are only necessary if you wish to replicate the large sample size simulations (10^5 + samples) of the scaling experiment. The smaller sample size simulations can be run with 30Gb of RAM (e.g. on a g4dn.2xlarge instance) and take up much less drive space. See the Snakemake workflow instructions below for details on how to avoid replicating the large sample size simulations.
+These hardware requirements are only necessary if you wish to replicate the large sample size simulations (10^6 samples) of the scaling experiment. The smaller sample size simulations can be run with 30Gb of RAM (e.g. on a g4dn.2xlarge instance) and take up much less drive space. See the Snakemake workflow instructions below for details on how to avoid replicating the large sample size simulations.
 
 A GPU greatly speeds up model fitting in PyTorch but is not strictly required. However, expect run times to be exceptionally slow when fitting models for simulations with more than 10^3 samples or QTLs.
 
-Runtime for the first scaling simulations is on the order of a week, the dilution and pleiotropy simulations take around 48 hours if run without parallelization.
+Runtime for the first scaling simulations is on the order of a week, the dilution and pleiotropy simulations take around 48 hours if run without parallelization. Runtime will be reduced significantly for the scaling simulations if using the pre-generated data (see Uploaded data below) and avoiding the largest sample size simulations.
 
 ## Data
 
@@ -38,6 +38,21 @@ All input data required to reproduce the results in the pub is generated with th
    - ```workflow_sims/alphasimr_pleio/alphasim_generate.R```
 
 These scripts are set-up to be run as part of a snakemake pipeline described below.
+
+### Uploaded data
+Alternatively we have uploaded the genotype, phenotype and QTL effect size files we generated in our simulations to the following [zenodo repository](10.5281/zenodo.15644566).
+
+This repo includes 3 files:
+   -```alphasimr_scaling_input.tar.xz``` simulated data for the scaling experiment (except the largest sim reps of 1e06 samples)
+   -```alphasimr_scaling_1e06_input.tar.xz``` simulated data for the scaling experiment from the largest sim reps of 1e06 samples
+   -```alphasimr_dilution_input.tar.xz``` simulated data for the dilution experiment
+   -```alphasimr_pleio_input.tar.xz``` simulated data for the pleiotropy experiment
+
+Simply download these files, and then run uncompress them to the correct input data directory for each experiment
+
+For example: ```tar -xJf alphasimr_pleio_input.tar.xz -C workflow_sims/alphasimr_pleio/alphasimr_output```
+
+The same directory structure is used for all 3 experiments. You will likely have to ```mkdir``` these ```alphasimr_output``` directories before extracting into them.
 
 ## Installation and Setup
 
