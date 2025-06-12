@@ -48,7 +48,8 @@ This repo includes 3 files:
    - ```alphasimr_dilution_input.tar.xz``` simulated data for the dilution experiment
    - ```alphasimr_pleio_input.tar.xz``` simulated data for the pleiotropy experiment
 
-Simply download these files, and then extract them to the correct input data directory for each experiment
+Simply download these files, and then extract them to the correct input data directory for each experiment.
+The total scaling experiment extracts to ~195Gb of data, this drops to just ~10Gb if excluding the million sample reps. The dilution and pleiotropy experiments extract to ~2Gb and ~5Gb respectively.
 
 For example: ```tar -xJf alphasimr_pleio_input.tar.xz -C workflow_sims/alphasimr_pleio/alphasimr_output```
 
